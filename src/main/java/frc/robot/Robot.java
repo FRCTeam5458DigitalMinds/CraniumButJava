@@ -8,96 +8,137 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project.
- */
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.filter.SlewRateLimiter;
+import com.revrobotics.CANEncoder;
+import com.revrobotics.REVLibError;
+import com.revrobotics.SparkMaxAbsoluteEncoder;
+import com.revrobotics.SparkMaxAlternateEncoder;
+import com.revrobotics.SparkMaxRelativeEncoder;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import java.lang.String;
+import com.ctre.phoenix.Util;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSensor;
+import com.revrobotics.CANSparkMax;
+
+import edu.wpi.first.math.ComputerVisionUtil;
+import edu.wpi.first.math.util.Units; 
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.AnalogGyro;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.PneumaticsControlModule;
+import edu.wpi.first.networktables.NetworkTableValue;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.PneumaticsBase;
+import edu.wpi.first.wpilibj.CompressorConfigType;
+import edu.wpi.first.wpilibj.util.WPILibVersion;
+import java.lang.Math;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import edu.wpi.first.cameraserver.CameraServer;
+import java.util.Timer;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
   private RobotContainer m_robotContainer;
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
+  //Joysticks
+  Joystick xbox = new Joystick(2), joystick = new Joystick(2), wheel = new Joystick(2);
+
+  //Drivetrain motors
+  CANSparkMax FrontLeftMotor = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax MiddleLeftMotor = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax BackLeftMotor = new CANSparkMax(5, MotorType.kBrushless);
+  CANSparkMax FrontRightMotor = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax MiddleRightMotor = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax BackRightMotor = new CANSparkMax(6, MotorType.kBrushless);
+
+  //Intake motor
+  CANSparkMax IntakeMotor = new CANSparkMax(25, MotorType.kBrushless);
+
+  //DriveTrain encoder
+  
+
+  //Arm Motors
+  CANSparkMax ArmUpOne = new CANSparkMax(7, MotorType.kBrushless);
+  CANSparkMax ArmUpTwo = new CANSparkMax(8, MotorType.kBrushless);
+
+  WPI_TalonFX ClawMotor = new WPI_TalonFX(9);
+  WPI_TalonFX ExtensionMotorOne = new WPI_TalonFX(10);
+  WPI_TalonFX ExtensionMotorTwo = new WPI_TalonFX(11);
+  WPI_TalonFX Intake = new WPI_TalonFX(25);
+
+  //Arm encoders
+  ArmOneEncoder = ArmUpOne.getEncoder(), ArmTwoEncoder = ArmUpTwo.getEncoder();
+  
+
+  
+
   @Override
   public void robotInit() {
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-    // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
   }
-
-  /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
-   */
+  
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
-    // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
   }
 
-  /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {}
 
   @Override
   public void disabledPeriodic() {}
 
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-    // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
   }
 
-  /** This function is called periodically during autonomous */
   @Override
   public void autonomousPeriodic() {}
 
   @Override
   public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
-    // this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
   }
 
-  /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {}
 
   @Override
   public void testInit() {
-    // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
   }
 
-  /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {}
 
-  /** This function is called once when the robot is first started up. */
   @Override
   public void simulationInit() {}
 
-  /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
 }
