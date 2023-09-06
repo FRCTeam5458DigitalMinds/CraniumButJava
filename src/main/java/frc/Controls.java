@@ -104,73 +104,73 @@ public class Controls {
             }
             // arm only retract
             if (robot.extensionvalue >= robot.maxextensionlimit){
-            if (robot.Xbox.getRawButton(2)){
-                robot.ExtensionMotorOne.set(-0.3);
-                robot.ExtensionMotorTwo.set(-0.3);
-                robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
-            }
-            else{
-                robot.ExtensionMotorOne.set(-0.2);
-                robot.ExtensionMotorTwo.set(-0.2);
-                robot.Piston.set(true);
-            }
+                if (robot.Xbox.getRawButton(2)){
+                    robot.ExtensionMotorOne.set(-0.3);
+                    robot.ExtensionMotorTwo.set(-0.3);
+                    robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
+                }
+                else{
+                    robot.ExtensionMotorOne.set(-0.2);
+                    robot.ExtensionMotorTwo.set(-0.2);
+                    robot.Piston.set(true);
+                }
             }
             // arm only extend
             if (robot.extensionvalue <= 0){
-            if (robot.Xbox.getRawButton(1)){
-                robot.ExtensionMotorOne.set(0.3);
-                robot.ExtensionMotorOne.set(0.3);
-                robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
-            }
-            else{
-                robot.ExtensionMotorOne.set(0);
-                robot.ExtensionMotorTwo.set(0);
-                robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
-            }
+                if (robot.Xbox.getRawButton(1)){
+                    robot.ExtensionMotorOne.set(0.3);
+                    robot.ExtensionMotorOne.set(0.3);
+                    robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
+                }
+                else{
+                    robot.ExtensionMotorOne.set(0);
+                    robot.ExtensionMotorTwo.set(0);
+                    robot.currentextend = robot.ExtensionMotorOne.getSelectedSensorPosition();
+                }
             }
     
             if ((robot.AverageArmEncoderValue >= -47) && (robot.AverageArmEncoderValue <= 0)){
-            // autopreset for cube
-            if (robot.Xbox.getRawButton(6)){
-                robot.ArmUpOne.set(-0.25);
-                robot.ArmUpTwo.set(0.25);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
-            else if (robot.Xbox.getRawButton(5)){
-                robot.ArmUpOne.set(0.25);
-                robot.ArmUpTwo.set(-0.25);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
-            else{
-                robot.ArmUpOne.set(0);
-                robot.ArmUpTwo.set(0);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
+                // autopreset for cube
+                if (robot.Xbox.getRawButton(6)){
+                    robot.ArmUpOne.set(-0.25);
+                    robot.ArmUpTwo.set(0.25);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
+                else if (robot.Xbox.getRawButton(5)){
+                    robot.ArmUpOne.set(0.25);
+                    robot.ArmUpTwo.set(-0.25);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
+                else{
+                    robot.ArmUpOne.set(0);
+                    robot.ArmUpTwo.set(0);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
             }
     
             if (robot.AverageArmEncoderValue <= -47){
-            if (robot.Xbox.getRawButton(6)){
-                robot.ArmUpOne.set(-0.2);
-                robot.ArmUpTwo.set(0.2);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
-            else{
-                robot.ArmUpOne.set(0);
-                robot.ArmUpTwo.set(0);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
+                if (robot.Xbox.getRawButton(6)){
+                    robot.ArmUpOne.set(-0.2);
+                    robot.ArmUpTwo.set(0.2);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
+                else{
+                    robot.ArmUpOne.set(0);
+                    robot.ArmUpTwo.set(0);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
             }
             if (robot.AverageArmEncoderValue >= 0){
-            if (robot.Xbox.getRawButton(5)){
-                robot.ArmUpOne.set(0.25);
-                robot.ArmUpTwo.set(-0.25);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
-            else{
-                robot.ArmUpOne.set(0);
-                robot.ArmUpTwo.set(0);
-                robot.currentarm = robot.ArmOneEncoder.getPosition();
-            }
+                if (robot.Xbox.getRawButton(5)){
+                    robot.ArmUpOne.set(0.25);
+                    robot.ArmUpTwo.set(-0.25);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
+                else{
+                    robot.ArmUpOne.set(0);
+                    robot.ArmUpTwo.set(0);
+                    robot.currentarm = robot.ArmOneEncoder.getPosition();
+                }
             }
         }
         if (robot.Xbox.getRawButtonPressed(3)){
@@ -193,6 +193,7 @@ public class Controls {
                 robot.Vent1.set(false);
                 robot.Vent2.set(false);
                 robot.Vent3.set(false);
+                //robot.ClawMotor.set(0.3);
             }
             else{
             robot.SRX_1.set(0);
@@ -203,7 +204,7 @@ public class Controls {
             robot.Vent1.set(true);
             robot.Vent1.set(true);
     
-            robot.ClawMotor.set(0);
+            //robot.ClawMotor.set(0);
             }
         }
     
@@ -215,14 +216,14 @@ public class Controls {
             robot.Vent1.set(false);
             robot.Vent2.set(false);
             robot.Vent3.set(false);
-            robot.ClawMotor.set(0.3);
+            //robot.ClawMotor.set(0.3);
         }
         // toggling the button off based on the button pressed
         else if (robot.bothTake == 3){
             robot.coneintake = false;
             long now = System.currentTimeMillis();
             if (now - robot.last <= 3000){
-                robot.ClawMotor.set(-0.15);
+                //robot.ClawMotor.set(-0.15);
     
             robot.SRX_1.set(0);
             robot.SRX_2.set(0);

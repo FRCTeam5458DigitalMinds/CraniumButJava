@@ -55,7 +55,7 @@ public class Robot extends TimedRobot {
   public CANSparkMax ArmUpOne = new CANSparkMax(7, MotorType.kBrushless);
   public CANSparkMax ArmUpTwo = new CANSparkMax(8, MotorType.kBrushless);
 
-  public WPI_TalonFX ClawMotor = new WPI_TalonFX(9);
+  //public WPI_TalonFX ClawMotor = new WPI_TalonFX(9);
   public WPI_TalonFX ExtensionMotorOne = new WPI_TalonFX(10);
   public WPI_TalonFX ExtensionMotorTwo = new WPI_TalonFX(11);
   public WPI_TalonFX Intake = new WPI_TalonFX(25);
@@ -167,10 +167,10 @@ public class Robot extends TimedRobot {
 
     // Motor supply limits
     SupplyCurrentLimitConfiguration current_limit_config = new SupplyCurrentLimitConfiguration(enable, currentLimit, triggerThresholdCurrent, triggerThresholdTime);
-    SupplyCurrentLimitConfiguration current_claw_config = new SupplyCurrentLimitConfiguration(enable, 30, 30, triggerThresholdTime);
+    //SupplyCurrentLimitConfiguration current_claw_config = new SupplyCurrentLimitConfiguration(enable, 30, 30, triggerThresholdTime);
     ExtensionMotorOne.configSupplyCurrentLimit(current_limit_config);
     ExtensionMotorTwo.configSupplyCurrentLimit(current_limit_config);
-    ClawMotor.configSupplyCurrentLimit(current_claw_config);
+    //ClawMotor.configSupplyCurrentLimit(current_claw_config);
 
     // Follow front motors
     MiddleLeftMotor.follow(FrontLeftMotor);
@@ -300,7 +300,7 @@ public class Robot extends TimedRobot {
     SRX_2.set(0);
     SRX_3.set(0);
 
-    ClawMotor.set(0);
+    //ClawMotor.set(0);
     ArmOneEncoder.setPosition(0);
     ArmTwoEncoder.setPosition(0);
     ExtensionMotorOne.setSelectedSensorPosition(0);

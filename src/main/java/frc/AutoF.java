@@ -76,7 +76,7 @@ public class AutoF {
       robot.extensionvalue = robot.ExtensionMotorOne.getSelectedSensorPosition();
 
       if (robot.autoStep == 1){
-        robot.ClawMotor.set(0.3);
+        //robot.ClawMotor.set(0.3);
         robot.SRX_1.set(1);
         robot.SRX_2.set(1);
         robot.SRX_3.set(1);
@@ -114,7 +114,7 @@ public class AutoF {
           robot.Vent1.set(true);
           robot.Vent2.set(true);
           robot.Vent3.set(true);
-          robot.ClawMotor.set(-0.3);
+          //robot.ClawMotor.set(-0.3);
         }
 
         if (now - last >= 2000){
@@ -203,7 +203,8 @@ public class AutoF {
           robot.SRX_1.set(0);
           robot.SRX_2.set(0);
           robot.SRX_3.set(0);
-          robot.ClawMotor.set(-0.3);
+          //robot.ClawMotor.set(-0.3);
+          //added
         }
 
         if (now - last >= 2000)
