@@ -23,17 +23,15 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.AutoF;
-import frc.Controls;
+import edu.wpi.first.wpilibj.GenericHID;
 
 public class Robot extends TimedRobot {
-  private AutoF autoF = new AutoF();
-  private Controls controls = new Controls();
+  
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
 
   //Joysticks
-  public Joystick Xbox = new Joystick(2), JoyStick1 = new Joystick(2), Wheel = new Joystick(2);
+  public Joystick Xbox = new Joystick(0), JoyStick1 = new Joystick(1), Wheel = new Joystick(2);
 
   //Drivetrain motors
   public CANSparkMax FrontLeftMotor = new CANSparkMax(1, MotorType.kBrushless);
@@ -44,7 +42,7 @@ public class Robot extends TimedRobot {
   public CANSparkMax BackRightMotor = new CANSparkMax(6, MotorType.kBrushless);
 
   //Intake motor
-  public CANSparkMax IntakeMotor = new CANSparkMax(25, MotorType.kBrushless);
+ // public CANSparkMax IntakeMotor = new CANSparkMax(25, MotorType.kBrushless);
 
   //DriveTrain encoder
   public RelativeEncoder LeftEncoder = FrontLeftMotor.getEncoder();
@@ -272,15 +270,555 @@ public class Robot extends TimedRobot {
     ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
 
     extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
-    autoF.autoF1();
-    autoF.autoF2();
-    autoF.autoF3();
-    autoF.autoF4();
-    autoF.autoF5();
-    autoF.autoF6();
-    autoF.autoF7();
-    autoF.autoF8();
-    autoF.autoF9();
+    
+    if (autoChooser == "1")
+    {
+      // Goes forwards towards the charge station inversed motors
+      if (autoStep == 1 && AverageEncoderValue <= 26.5)
+      {
+        speed = 0.4;
+        FrontRightMotor.set(speed);
+        FrontLeftMotor.set(-speed);
+
+        autoStep++;
+      }
+      // makes robot stop on top of charge station
+      else if (autoStep == 2 && AverageEncoderValue >= 26.5)
+      {
+        ROLL = gyro.getRoll() - 2;
+
+        if (ROLL >= -1 && ROLL <= 1)
+        {
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+        }
+        if (ROLL >= 1)
+        {
+          FrontLeftMotor.set(0.3);
+          FrontRightMotor.set(-0.3);
+        }
+        else if (ROLL <= -1)
+        {
+          FrontLeftMotor.set(-0.3);
+          FrontRightMotor.set(0.3);
+        }
+      }
+    }
+
+    if (autoChooser == "2"){
+      if (autoStep == 1){
+        IntakePiston.set(false);
+        Intake.set(-0.3);
+        long now = System.currentTimeMillis();
+        if(now - last >= 2000){
+          Intake.set(0);
+          autoStep++;
+        }
+      }
+
+      if (autoStep == 2 && AverageEncoderValue >= -37){
+        speed = 0.4;
+        FrontRightMotor.set(-speed);
+        FrontLeftMotor.set(speed);
+        autoStep++;
+      }
+      else if (autoStep == 3 && AverageEncoderValue <= -37){
+        FrontLeftMotor.set(0);
+        FrontRightMotor.set(0);
+      }
+    }
+
+    // Auto 3: Score and leave the community
+    if (autoChooser == "3"){
+
+      // Arm and Extension (Scoring during auto)
+      extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
+
+      if (autoStep == 1){
+        //ClawMotor.set(0.3);
+        SRX_1.set(1);
+        SRX_2.set(1);
+        SRX_3.set(1);
+        Vent1.set(false);
+        Vent2.set(false);
+        Vent3.set(false);
+        if (AverageArmEncoderValue >= highscorearm){
+          ArmUpOne.set(0.2);
+          ArmUpTwo.set(-0.2);
+        }
+        else{
+          ArmUpOne.set(0);
+          ArmUpTwo.set(0);
+        }
+        if (extensionvalue <= highscoreextend){
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+        }
+        else{
+          ExtensionMotorOne.set(0);
+          ExtensionMotorTwo.set(0);
+        }
+        if (extensionvalue >= highscoreextend && AverageArmEncoderValue <= highscorearm){
+          autoStep++;
+          last = System.currentTimeMillis();
+        }
+      }
+      // this will drop the cube
+      else if (autoStep == 2){
+        long now = System.currentTimeMillis();
+        if (now - last <= 2000){
+          SRX_1.set(0);
+          SRX_2.set(0);
+          SRX_3.set(0);
+          Vent1.set(true);
+          Vent2.set(true);
+          Vent3.set(true);
+          //ClawMotor.set(-0.3);
+        }
+
+        if (now - last >= 2000){
+          if (AverageArmEncoderValue <= -2){
+            ArmUpOne.set(-0.2);
+            ArmUpTwo.set(0.2);
+          }
+          else{
+            ArmUpOne.set(0);
+            ArmUpTwo.set(0);
+          }
+          if (extensionvalue >= 3000){
+            ExtensionMotorOne.set(-0.3);
+            ExtensionMotorTwo.set(-0.3);
+          }
+          else{
+            ExtensionMotorOne.set(0);
+            ExtensionMotorTwo.set(0);
+            //autoStep++;
+          }
+        }
+      }
+      // this will go out of the community
+      else if (autoStep == 3){
+        if (YAW <= 3 && YAW >= -3){
+          if (autoStep == 2 && AverageEncoderValue >= -30){
+            speed = -0.3;
+            FrontRightMotor.set(speed);
+            FrontLeftMotor.set(-speed);
+          }
+        }
+        else{
+          if (AverageEncoderValue >= -30){
+            if (YAW >= 3){
+              FrontRightMotor.set(speed);
+              FrontLeftMotor.set(-speed * 0.7);
+            }
+            if (YAW <= -3){
+              FrontRightMotor.set(speed * 0.7);
+              FrontLeftMotor.set(-speed);
+            }
+          }
+        }
+      }
+    }
+
+    // Auto 4: Scoring High
+    if (autoChooser == "4")
+    {
+      // Arm and Extension (Scoring during auto)
+      if (autoStep == 1)
+      {
+        if (AverageArmEncoderValue >= highscorearm)
+        {
+          ArmUpOne.set(0.2);
+          ArmUpTwo.set(-0.2);
+        }
+        else
+        {
+          ArmUpOne.set(0);
+          ArmUpTwo.set(0);
+        }
+        if (extensionvalue <= highscoreextend)
+        {
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+        }
+        else
+        {
+          ExtensionMotorOne.set(0);
+          ExtensionMotorTwo.set(0);
+        }
+        if (extensionvalue >= highscoreextend && AverageArmEncoderValue <= highscorearm)
+        {
+          autoStep++;
+          last = System.currentTimeMillis();
+        }
+      }
+      else if (autoStep == 2)
+      {
+        long now = System.currentTimeMillis();
+        if (now - last >= 2000)
+        {
+          SRX_1.set(0);
+          SRX_2.set(0);
+          SRX_3.set(0);
+          //ClawMotor.set(-0.3);
+          //added
+        }
+
+        if (now - last >= 2000)
+        {
+          if (AverageArmEncoderValue <= 7)
+          {
+            ArmUpOne.set(-0.2);
+            ArmUpTwo.set(0.2);
+          }
+          else
+          {
+            ArmUpOne.set(0);
+            ArmUpTwo.set(0);
+          }
+          if (extensionvalue >= 3000)
+          {
+            ExtensionMotorOne.set(-0.3);
+            ExtensionMotorTwo.set(-0.3);
+          }
+          else
+          {
+            ExtensionMotorOne.set(0);
+            ExtensionMotorTwo.set(0);
+          }
+        }
+      }
+    }
+
+    if (autoChooser == "5"){
+      if (autoStep == 1){
+        IntakePiston.set(false);
+        Intake.set(-0.4);
+        long now = System.currentTimeMillis();
+        if (now - last >= 1500){
+          Intake.set(0);
+          autoStep++;
+        }
+        
+      }
+      // Leave Community
+      if (autoStep == 2){
+        if (YAW <= 3 && YAW >= -3){
+          if (autoStep == 2 && AverageEncoderValue >= -45){
+            speed = -0.3;
+            FrontRightMotor.set(speed * 0.9);
+            FrontLeftMotor.set(-speed);
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+          }
+        }
+        else{
+          if (AverageEncoderValue >= -45){
+            if (YAW >= 3){
+              FrontRightMotor.set(speed);
+              FrontLeftMotor.set(-speed * 0.7);
+            }
+            if (YAW <= -3){
+              FrontRightMotor.set(speed * 0.7);
+              FrontLeftMotor.set(-speed);
+            }
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+          }
+        }
+      }
+    }
+
+    if (autoChooser == "6"){
+      if (autoStep == 1){
+        IntakePiston.set(false);
+        Intake.set(-0.4);
+        long now = System.currentTimeMillis();
+        if (now - last >= 1500){
+          Intake.set(0);
+          autoStep++;
+          last = System.currentTimeMillis();
+        }
+      }
+      if (autoStep == 2){
+        if (YAW <= 173){
+          speed = 0.15;
+          FrontLeftMotor.set(speed);
+          FrontRightMotor.set(speed);
+        }
+        else{
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+          RightEncoder.setPosition(0);
+          LeftEncoder.setPosition(0);
+          long now = System.currentTimeMillis();
+          if (now - last >= 500){
+            autoStep++;
+          }
+        }
+      }
+      if (autoStep == 3 && AverageEncoderValue < 31){
+        speed = 0.5;
+        FrontRightMotor.set(speed);
+        FrontLeftMotor.set(-speed);
+      }
+      if (autoStep == 3 && AverageEncoderValue >= 31){
+        ROLL = gyro.getRoll() - 2;
+        if (ROLL >= -3 && ROLL <= 3){
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+        }
+        if (ROLL >= 3){
+          if (YAW <= 183 && YAW >= 177){
+            FrontLeftMotor.set(0.1);
+            FrontRightMotor.set(-0.09368259);
+          }
+          else if (YAW >= 183){
+            FrontLeftMotor.set(0.1);
+            FrontRightMotor.set(-0.07);
+          }
+          else if (YAW <= 177){
+            FrontLeftMotor.set(0.07);
+            FrontRightMotor.set(-0.1);
+          }
+        }
+        else if (ROLL <= -3){
+          if (YAW <= 183 && YAW >= 177){
+            FrontLeftMotor.set(-0.1);
+            FrontRightMotor.set(0.09368259);
+          }
+          else if (YAW >= 183){
+            FrontLeftMotor.set(-0.07);
+            FrontRightMotor.set(0.1);
+          }
+          else if (YAW <= 177){
+            FrontLeftMotor.set(-0.1);
+            FrontRightMotor.set(0.07);
+          }
+        }
+      }
+    }
+    if (autoChooser == "7"){
+    long now = System.currentTimeMillis();
+    IntakePiston.set(false);
+    Intake.set(-0.4);
+      if (now - last >= 1500){
+        Intake.set(0);
+        autoStep++;
+      }
+    }
+
+    if (autoChooser == "8"){
+      long now = System.currentTimeMillis();
+      if (autoStep == 1){
+        Intake.set(-0.4);
+        if (now - last >= 1500){
+          Intake.set(0);
+          autoStep++;
+        }
+      }
+      if (autoStep == 2){
+        if (YAW <= 173){
+          speed = 0.15;
+          FrontLeftMotor.set(speed);
+          FrontRightMotor.set(speed);
+        }
+        else{
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+          LeftEncoder.setPosition(0);
+          RightEncoder.setPosition(0);
+          autoStep++;
+        }
+      }
+      if (autoStep == 3){
+        if (YAW <= 180 && YAW >= 174){
+          if (AverageEncoderValue <= 55){
+            speed = 0.3;
+            FrontRightMotor.set(speed);
+            FrontLeftMotor.set(-speed);
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+            autoStep++;
+          }
+        }
+        else{
+          if (AverageEncoderValue <= 55){
+            if (YAW >= 180){
+              FrontRightMotor.set(speed * 0.7);
+              FrontLeftMotor.set(-speed);
+            }
+            if (YAW <= 174){
+              FrontRightMotor.set(speed);
+              FrontLeftMotor.set(-speed * 0.7);
+            }
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+            Intake.set(0);
+            LeftEncoder.setPosition(0);
+            RightEncoder.setPosition(0);
+
+            autoStep++;
+            last = System.currentTimeMillis();
+          }
+        }
+      }
+      if (autoStep == 4){
+        IntakePiston.set(true);
+        Intake.set(0.4);
+        if (now - last >= 2000){
+          IntakePiston.set(false);
+          Intake.set(0);
+          autoStep = 5;
+        }
+      }
+      if (autoStep == 5){
+        if (YAW >= 7){
+          speed = -0.15;
+          FrontLeftMotor.set(speed);
+          FrontRightMotor.set(speed);
+        }
+        else{
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+          LeftEncoder.setPosition(0);
+          RightEncoder.setPosition(0);
+          autoStep++;
+        }
+      }
+      if (autoStep == 6){
+        if (YAW <= 3 && YAW >= -3){
+          if (AverageEncoderValue <= 55){
+            speed = 0.3;
+            FrontRightMotor.set(speed);
+            FrontLeftMotor.set(-speed);
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+            autoStep++;
+          }
+        }
+        else{
+          if (AverageEncoderValue <= 55){
+            if (YAW >= 3){
+              FrontRightMotor.set(speed * 0.7);
+              FrontLeftMotor.set(-speed);
+            }
+            if (YAW <= -3){
+              FrontRightMotor.set(speed);
+              FrontLeftMotor.set(-speed * 0.7);
+            }
+          }
+          else{
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+            // autoStep++;
+          }
+        }
+      }
+    }
+
+    if (autoChooser == "9"){
+      long now = System.currentTimeMillis();
+      // dispersing cube
+      if (autoStep == 1){
+        Intake.set(-0.48);
+        if (now - last >= 500){
+          Intake.set(0);
+          autoStep = 2;
+        }
+      }
+      // 180 degree turn
+      if (autoStep == 2){
+        if (YAW <= 173){
+          speed = 0.15;
+          FrontLeftMotor.set(speed);
+          FrontRightMotor.set(speed);
+        }
+        else{
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+          LeftEncoder.setPosition(0);
+          RightEncoder.setPosition(0);
+          autoStep = 3;
+        }
+      }
+      // over charging station
+      if (autoStep == 3 && AverageEncoderValue < 40){
+        speed = 0.3;
+        FrontRightMotor.set(speed * 0.9);
+        FrontLeftMotor.set(-speed);
+      }
+      else{
+        autoStep++;
+      }
+      // turning again
+      if (autoStep == 4){
+        if (YAW >= 7){
+          speed = -0.15;
+          FrontLeftMotor.set(speed);
+          FrontRightMotor.set(speed);
+        }
+        else{  
+          gyro.setYaw(0);
+          LeftEncoder.setPosition(0);
+          RightEncoder.setPosition(0);
+          autoStep++;
+        }
+      }
+      // onto charging station
+      if (autoStep == 5 && AverageEncoderValue < 15){
+        speed = 0.3;
+        FrontRightMotor.set(speed);
+        FrontLeftMotor.set(-speed * 0.9);
+      }
+      // balancing charging station
+      if (autoStep == 5 && AverageEncoderValue >= 15){
+        ROLL = gyro.getRoll() - 2;
+        if (ROLL >= -3 && ROLL <= 3){
+          FrontLeftMotor.set(0);
+          FrontRightMotor.set(0);
+        }
+        if (ROLL >= 3){
+          if (YAW <= 3 && YAW >= -3){
+            speed = -0.07;
+            FrontLeftMotor.set(0.1);
+            FrontRightMotor.set(-0.09);
+          }
+          else if (YAW >= 3){
+            FrontLeftMotor.set(0.1 * 0.7);
+            FrontRightMotor.set(-0.09);
+          }
+          else if (YAW <= -3){
+            FrontLeftMotor.set(0.1);
+            FrontRightMotor.set(-0.09 * 0.7);
+          }
+        }
+        else if (ROLL <= -3){
+          if (YAW <= 3 && YAW >= -3){
+            FrontLeftMotor.set(-0.1);
+            FrontRightMotor.set(0.09);
+          }
+          else if (YAW >= 3){
+            FrontLeftMotor.set(-0.1 * 0.7);
+            FrontRightMotor.set(0.09);
+          }
+          else if (YAW <= -3){
+            FrontLeftMotor.set(-0.1);
+            FrontRightMotor.set(0.09 * 0.7);
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -344,8 +882,266 @@ public class Robot extends TimedRobot {
     ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
     AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
 
-    controls.controls();
+    //controls.controls();
+    if (buttonValueTwo == true){
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
+      Xbox.setRumble(GenericHID.RumbleType.kLeftRumble, 1.0);
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
   }
+  else if (buttonValueTwo == false){
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
+      Xbox.setRumble(GenericHID.RumbleType.kLeftRumble, 0.0);
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
+      Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
+  }
+
+  // 41 inches
+  // 2988.303 is multiplier by inches
+
+  mainlimit = 122520.423;
+  // Setting extension limits
+  if (AverageArmEncoderValue <= -15){
+      // number in parameters + (number in parenthese subtracted from AverageArmValue) must equal division factor
+      limitfactor = (AverageArmEncoderValue - 1) / -16;
+      maxextensionlimit = mainlimit / limitfactor;
+  }
+  else{
+      // resetting limits
+      maxextensionlimit = mainlimit;
+  }
+
+  // Release the piston while the arm is being extended & retracted
+  if (Xbox.getRawButtonPressed(2) || Xbox.getRawButtonPressed(1)){
+      Piston.set(true);
+  }
+  // Stops firing piston while arm is extended & retracted
+  if (Xbox.getRawButtonReleased(1) || Xbox.getRawButtonReleased(2)){
+      Piston.set(false);
+  }
+
+  if (Xbox.getRawButton(8)){
+      // arm to go
+      if (extensionvalue <= maxextensionlimit){
+      if (extensionvalue <= 75000){
+          Piston.set(true);
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+      }
+      else{
+          ExtensionMotorOne.set(0);
+          ExtensionMotorTwo.set(0);
+          Piston.set(false);
+      }
+      }
+      else{
+          ExtensionMotorOne.set(0);
+          ExtensionMotorTwo.set(0);
+      }
+
+      if (AverageArmEncoderValue >= -47){
+      if (AverageArmEncoderValue <= -17.5){
+          ArmUpOne.set(-0.25);
+          ArmUpTwo.set(0.25);
+      }
+      // arm to go down
+      else if (AverageArmEncoderValue >= -15.5){
+          ArmUpOne.set(0.25);
+          ArmUpTwo.set(-0.25);
+      }
+      else{
+          ArmUpOne.set(0);
+          ArmUpTwo.set(0);
+      }
+      }
+      else{
+          ArmUpOne.set(0);
+          ArmUpTwo.set(0);
+      }
+  }
+  // Between ___ & 41 inches, the arm can retract & extend
+  if (Xbox.getRawButton(8)){
+      if (extensionvalue <= maxextensionlimit && extensionvalue >= 0){
+      if (Xbox.getRawButton(1)){
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+      }
+      else if (Xbox.getRawButton(2)){
+          ExtensionMotorOne.set(-0.3);
+          ExtensionMotorTwo.set(-0.3);
+      }
+      else{
+          ExtensionMotorOne.set(0);
+          ExtensionMotorTwo.set(0);
+          Piston.set(false);
+          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+      }
+      }
+      // arm only retract
+      if (extensionvalue >= maxextensionlimit){
+          if (Xbox.getRawButton(2)){
+              ExtensionMotorOne.set(-0.3);
+              ExtensionMotorTwo.set(-0.3);
+              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+          }
+          else{
+              ExtensionMotorOne.set(-0.2);
+              ExtensionMotorTwo.set(-0.2);
+              Piston.set(true);
+          }
+      }
+      // arm only extend
+      if (extensionvalue <= 0){
+          if (Xbox.getRawButton(1)){
+              ExtensionMotorOne.set(0.3);
+              ExtensionMotorOne.set(0.3);
+              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+          }
+          else{
+              ExtensionMotorOne.set(0);
+              ExtensionMotorTwo.set(0);
+              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+          }
+      }
+
+      if ((AverageArmEncoderValue >= -47) && (AverageArmEncoderValue <= 0)){
+          // autopreset for cube
+          if (Xbox.getRawButton(6)){
+              ArmUpOne.set(-0.25);
+              ArmUpTwo.set(0.25);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+          else if (Xbox.getRawButton(5)){
+              ArmUpOne.set(0.25);
+              ArmUpTwo.set(-0.25);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+          else{
+              ArmUpOne.set(0);
+              ArmUpTwo.set(0);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+      }
+
+      if (AverageArmEncoderValue <= -47){
+          if (Xbox.getRawButton(6)){
+              ArmUpOne.set(-0.2);
+              ArmUpTwo.set(0.2);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+          else{
+              ArmUpOne.set(0);
+              ArmUpTwo.set(0);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+      }
+      if (AverageArmEncoderValue >= 0){
+          if (Xbox.getRawButton(5)){
+              ArmUpOne.set(0.25);
+              ArmUpTwo.set(-0.25);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+          else{
+              ArmUpOne.set(0);
+              ArmUpTwo.set(0);
+              currentarm = ArmOneEncoder.getPosition();
+          }
+      }
+  }
+  if (Xbox.getRawButtonPressed(3)){
+      bothTake = 2;
+  }
+  if (Xbox.getRawButtonPressed(4)){
+      bothTake = 3;
+  }
+
+  // Cone intake
+  if (bothTake == 1){
+      if (Xbox.getRawAxis(3) >= 0.1){
+          coneintake = true;
+      }
+      if (coneintake == true){
+          SRX_1.set(1);
+          SRX_2.set(1);
+          SRX_3.set(1);
+          Lights.set(true);
+          Vent1.set(false);
+          Vent2.set(false);
+          Vent3.set(false);
+          //ClawMotor.set(0.3);
+      }
+      else{
+      SRX_1.set(0);
+      SRX_2.set(0);
+      SRX_3.set(0);
+      Lights.set(false);
+      Vent1.set(true);
+      Vent1.set(true);
+      Vent1.set(true);
+
+      //ClawMotor.set(0);
+      }
+  }
+
+  // turning it on based on the button pressed
+  if (bothTake == 2){
+      SRX_1.set(1);
+      SRX_2.set(1);
+      SRX_3.set(1);
+      Vent1.set(false);
+      Vent2.set(false);
+      Vent3.set(false);
+      //ClawMotor.set(0.3);
+  }
+  // toggling the button off based on the button pressed
+  else if (bothTake == 3){
+      coneintake = false;
+      long now = System.currentTimeMillis();
+      if (now - last <= 3000){
+          //ClawMotor.set(-0.15);
+
+      SRX_1.set(0);
+      SRX_2.set(0);
+      SRX_3.set(0);
+
+      Vent1.set(true);
+      Vent2.set(true);
+      Vent3.set(true);
+      }
+      else{
+          Vent1.set(false);
+      Vent2.set(false);
+      Vent3.set(false);
+
+      bothTake = 1;
+      last = System.currentTimeMillis();
+      }
+  }
+
+  if (JoyStick1.getRawButton(1)){
+      Intake.set(0.5);
+      IntakePiston.set(true);
+  }
+  else if (JoyStick1.getRawButton(3)){
+      Intake.set(-0.4);
+  }
+  else{
+      Intake.set(0);
+      IntakePiston.set(false);
+  }
+
+  // setting base values for teleop
+  double WheelX = -Wheel.getX();
+  double JoyY = JoyStick1.getY();
+
+  double lmol = ((WheelX * 0.5) + (0.6 * JoyY));
+  double rmor = ((WheelX * 0.5) - (0.6 * JoyY)) * 0.9368259;
+
+  FrontLeftMotor.set(lmol);
+  FrontRightMotor.set(rmor);
+  }
+  
 
   @Override
   public void testInit() {
