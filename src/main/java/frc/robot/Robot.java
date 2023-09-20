@@ -194,7 +194,7 @@ public class Robot extends TimedRobot {
 
     ArmUpOne.setIdleMode(CANSparkMax.IdleMode.kBrake);
     ArmUpTwo.setIdleMode(CANSparkMax.IdleMode.kBrake);
-
+    ExtensionMotorOne.setSelectedSensorPosition(0);
   }
   
   @Override
@@ -922,17 +922,18 @@ public class Robot extends TimedRobot {
 
   if (Xbox.getRawButton(8)){
       // arm to go
+      SmartDashboard.putString("DB/String 2", ("88888888888888"));
       if (extensionvalue <= maxextensionlimit){
-      if (extensionvalue <= 75000){
-          Piston.set(true);
-          ExtensionMotorOne.set(0.3);
-          ExtensionMotorTwo.set(0.3);
-      }
-      else{
-          ExtensionMotorOne.set(0);
-          ExtensionMotorTwo.set(0);
-          Piston.set(false);
-      }
+        if (extensionvalue <= 75000){
+            Piston.set(true);
+            ExtensionMotorOne.set(0.3);
+            ExtensionMotorTwo.set(0.3);
+        }
+        else{
+            ExtensionMotorOne.set(0);
+            ExtensionMotorTwo.set(0);
+            Piston.set(false);
+        }
       }
       else{
           ExtensionMotorOne.set(0);
@@ -940,19 +941,19 @@ public class Robot extends TimedRobot {
       }
 
       if (AverageArmEncoderValue >= -47){
-      if (AverageArmEncoderValue <= -17.5){
-          ArmUpOne.set(-0.25);
-          ArmUpTwo.set(0.25);
-      }
-      // arm to go down
-      else if (AverageArmEncoderValue >= -15.5){
-          ArmUpOne.set(0.25);
-          ArmUpTwo.set(-0.25);
-      }
-      else{
-          ArmUpOne.set(0);
-          ArmUpTwo.set(0);
-      }
+        if (AverageArmEncoderValue <= -17.5){
+            ArmUpOne.set(-0.25);
+            ArmUpTwo.set(0.25);
+        }
+        // arm to go down
+        else if (AverageArmEncoderValue >= -15.5){
+            ArmUpOne.set(0.25);
+            ArmUpTwo.set(-0.25);
+        }
+        else{
+            ArmUpOne.set(0);
+            ArmUpTwo.set(0);
+        }
       }
       else{
           ArmUpOne.set(0);
@@ -962,40 +963,44 @@ public class Robot extends TimedRobot {
   // Between ___ & 41 inches, the arm can retract & extend
   if (Xbox.getRawButton(8)){
       if (extensionvalue <= maxextensionlimit && extensionvalue >= 0){
-      if (Xbox.getRawButton(1)){
-          ExtensionMotorOne.set(0.3);
-          ExtensionMotorTwo.set(0.3);
-          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
-      }
-      else if (Xbox.getRawButton(2)){
-          ExtensionMotorOne.set(-0.3);
-          ExtensionMotorTwo.set(-0.3);
-      }
-      else{
-          ExtensionMotorOne.set(0);
-          ExtensionMotorTwo.set(0);
-          Piston.set(false);
-          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
-      }
+        if (Xbox.getRawButton(1)){
+            ExtensionMotorOne.set(-0.3);
+            ExtensionMotorTwo.set(-0.3);
+            SmartDashboard.putString("DB/String 2", ("11111111111111"));
+            currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+        }
+        else if (Xbox.getRawButton(2)){
+            ExtensionMotorOne.set(0.3);
+            ExtensionMotorTwo.set(0.3);
+            SmartDashboard.putString("DB/String 2", ("2222222222222"));
+        }
+        else{
+            ExtensionMotorOne.set(0);
+            ExtensionMotorTwo.set(0);
+            Piston.set(false);
+            currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+        }
       }
       // arm only retract
       if (extensionvalue >= maxextensionlimit){
           if (Xbox.getRawButton(2)){
-              ExtensionMotorOne.set(-0.3);
-              ExtensionMotorTwo.set(-0.3);
+              ExtensionMotorOne.set(0.3);
+              ExtensionMotorTwo.set(0.3);
+              SmartDashboard.putString("DB/String 2", ("222222222222222"));
               currentextend = ExtensionMotorOne.getSelectedSensorPosition();
           }
           else{
-              ExtensionMotorOne.set(-0.2);
-              ExtensionMotorTwo.set(-0.2);
+              ExtensionMotorOne.set(0.2);
+              ExtensionMotorTwo.set(0.2);
               Piston.set(true);
           }
       }
       // arm only extend
       if (extensionvalue <= 0){
           if (Xbox.getRawButton(1)){
-              ExtensionMotorOne.set(0.3);
-              ExtensionMotorOne.set(0.3);
+              ExtensionMotorOne.set(-0.3);
+              ExtensionMotorTwo.set(-0.3);
+              SmartDashboard.putString("DB/String 2", ("111111111"));
               currentextend = ExtensionMotorOne.getSelectedSensorPosition();
           }
           else{
@@ -1008,11 +1013,13 @@ public class Robot extends TimedRobot {
       if ((AverageArmEncoderValue >= -47) && (AverageArmEncoderValue <= 0)){
           // autopreset for cube
           if (Xbox.getRawButton(6)){
+              SmartDashboard.putString("DB/String 2", ("6666666666666666"));
               ArmUpOne.set(-0.25);
               ArmUpTwo.set(0.25);
               currentarm = ArmOneEncoder.getPosition();
           }
           else if (Xbox.getRawButton(5)){
+              SmartDashboard.putString("DB/String 2", ("555555555555"));
               ArmUpOne.set(0.25);
               ArmUpTwo.set(-0.25);
               currentarm = ArmOneEncoder.getPosition();
@@ -1100,7 +1107,7 @@ public class Robot extends TimedRobot {
       long now = System.currentTimeMillis();
       if (now - last <= 3000){
           //ClawMotor.set(-0.15);
-
+      SmartDashboard.putString("DB/String 2", ("timer no done :("));
       SRX_1.set(0);
       SRX_2.set(0);
       SRX_3.set(0);
@@ -1110,7 +1117,8 @@ public class Robot extends TimedRobot {
       Vent3.set(true);
       }
       else{
-          Vent1.set(false);
+      SmartDashboard.putString("DB/String 2", ("timer done"));
+      Vent1.set(false);
       Vent2.set(false);
       Vent3.set(false);
 
