@@ -10,9 +10,10 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
+import com.revrobotics.SparkMaxAlternateEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
@@ -31,7 +32,9 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
 
   //Joysticks
-  public Joystick Xbox = new Joystick(0), JoyStick1 = new Joystick(1), Wheel = new Joystick(2);
+  public Joystick Xbox = new Joystick(0);
+  public Joystick JoyStick1 = new Joystick(1);
+  public Joystick Wheel = new Joystick(2);
 
   //Drivetrain motors
   public CANSparkMax FrontLeftMotor = new CANSparkMax(1, MotorType.kBrushless);
@@ -60,7 +63,9 @@ public class Robot extends TimedRobot {
 
 
   //Arm encoders
-  public RelativeEncoder ArmOneEncoder = ArmUpOne.getEncoder(), ArmTwoEncoder = ArmUpTwo.getEncoder();
+  public RelativeEncoder ArmOneEncoder;
+  public RelativeEncoder ArmTwoEncoder;
+  
   
   //Solenoids & compresser
   public Compressor pcmCompressor = new Compressor(0, PneumaticsModuleType.CTREPCM);
@@ -144,6 +149,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    RelativeEncoder ArmOneEncoder = ArmUpOne.getEncoder();
+    RelativeEncoder ArmTwoEncoder = ArmUpTwo.getEncoder();
+
     m_robotContainer = new RobotContainer();
     IntakePiston.set(true);
     gyro.reset();
@@ -267,7 +275,7 @@ public class Robot extends TimedRobot {
 
     AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
     ArmOneEncoderValue = -ArmOneEncoder.getPosition();
-    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
+    ArmOneEncoder.getPosition();
 
     extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
     
@@ -826,6 +834,9 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    SmartDashboard.putString("DB/String 2", ("i am normal"));
+    ArmOneEncoder = ArmUpOne.getEncoder();
+    ArmTwoEncoder = ArmUpTwo.getEncoder();
     timerStarted = false;
     gyro.setYaw(0);
     gyro.calibrate();
@@ -877,6 +888,10 @@ public class Robot extends TimedRobot {
     LeftEncoderValue = -LeftEncoder.getPosition();
     RightEncoderValue = RightEncoder.getPosition();
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
+
+
+    ArmOneEncoder = ArmUpOne.getEncoder();
+    ArmTwoEncoder = ArmUpTwo.getEncoder();
 
     ArmOneEncoderValue = -ArmOneEncoder.getPosition();
     ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
@@ -930,14 +945,14 @@ public class Robot extends TimedRobot {
             ExtensionMotorTwo.set(0.3);
         }
         else{
-            ExtensionMotorOne.set(0);
-            ExtensionMotorTwo.set(0);
+            ExtensionMotorOne.set(0.0);
+            ExtensionMotorTwo.set(0.0);
             Piston.set(false);
         }
       }
       else{
-          ExtensionMotorOne.set(0);
-          ExtensionMotorTwo.set(0);
+          ExtensionMotorOne.set(0.0);
+          ExtensionMotorTwo.set(0.0);
       }
 
       if (AverageArmEncoderValue >= -47){
@@ -961,56 +976,53 @@ public class Robot extends TimedRobot {
       }
   }
   // Between ___ & 41 inches, the arm can retract & extend
-  if (Xbox.getRawButton(8)){
-      if (extensionvalue <= maxextensionlimit && extensionvalue >= 0){
+      if (extensionvalue <= maxextensionlimit && extensionvalue > 0.0){
         if (Xbox.getRawButton(1)){
-            ExtensionMotorOne.set(-0.3);
-            ExtensionMotorTwo.set(-0.3);
-            SmartDashboard.putString("DB/String 2", ("11111111111111"));
+            ExtensionMotorOne.set(0.3);
+            ExtensionMotorTwo.set(0.3);
             currentextend = ExtensionMotorOne.getSelectedSensorPosition();
         }
         else if (Xbox.getRawButton(2)){
-            ExtensionMotorOne.set(0.3);
-            ExtensionMotorTwo.set(0.3);
-            SmartDashboard.putString("DB/String 2", ("2222222222222"));
+            ExtensionMotorOne.set(-0.3);
+            ExtensionMotorTwo.set(-0.3);
         }
-        else{
-            ExtensionMotorOne.set(0);
-            ExtensionMotorTwo.set(0);
-            Piston.set(false);
-            currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+        else {
+          ExtensionMotorOne.set(0.0);
+          ExtensionMotorTwo.set(0.0);
+          Piston.set(false);
+          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
         }
       }
       // arm only retract
       if (extensionvalue >= maxextensionlimit){
+        SmartDashboard.putString("DB/String 2", ("i am too long"));
           if (Xbox.getRawButton(2)){
-              ExtensionMotorOne.set(0.3);
-              ExtensionMotorTwo.set(0.3);
-              SmartDashboard.putString("DB/String 2", ("222222222222222"));
-              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+            ExtensionMotorOne.set(-0.3);
+            ExtensionMotorTwo.set(-0.3);
+            currentextend = ExtensionMotorOne.getSelectedSensorPosition();
           }
-          else{
-              ExtensionMotorOne.set(0.2);
-              ExtensionMotorTwo.set(0.2);
-              Piston.set(true);
+          else {
+            ExtensionMotorOne.set(-0.2);
+            ExtensionMotorTwo.set(-0.2);
+            Piston.set(true);
           }
       }
       // arm only extend
-      if (extensionvalue <= 0){
-          if (Xbox.getRawButton(1)){
-              ExtensionMotorOne.set(-0.3);
-              ExtensionMotorTwo.set(-0.3);
-              SmartDashboard.putString("DB/String 2", ("111111111"));
-              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
-          }
-          else{
-              ExtensionMotorOne.set(0);
-              ExtensionMotorTwo.set(0);
-              currentextend = ExtensionMotorOne.getSelectedSensorPosition();
-          }
+      if (extensionvalue <= 0.0) {
+        SmartDashboard.putString("DB/String 2", ("i am too short"));
+        if (Xbox.getRawButton(1)){
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+        }
+        else{
+          ExtensionMotorOne.set(0.0);
+          ExtensionMotorTwo.set(0.0);
+          currentextend = ExtensionMotorOne.getSelectedSensorPosition();
+        }
       }
-
-      if ((AverageArmEncoderValue >= -47) && (AverageArmEncoderValue <= 0)){
+//47 heheheheheheheh I LOVE CODE HEHEHEHEHEHEHEH
+      if ((AverageArmEncoderValue >= -25) && (AverageArmEncoderValue <= 0)){
           // autopreset for cube
           if (Xbox.getRawButton(6)){
               SmartDashboard.putString("DB/String 2", ("6666666666666666"));
@@ -1031,10 +1043,10 @@ public class Robot extends TimedRobot {
           }
       }
 
-      if (AverageArmEncoderValue <= -47){
+      if (AverageArmEncoderValue <= -25){
           if (Xbox.getRawButton(6)){
-              ArmUpOne.set(-0.2);
-              ArmUpTwo.set(0.2);
+              ArmUpOne.set(-0.25);
+              ArmUpTwo.set(0.25);
               currentarm = ArmOneEncoder.getPosition();
           }
           else{
@@ -1055,7 +1067,6 @@ public class Robot extends TimedRobot {
               currentarm = ArmOneEncoder.getPosition();
           }
       }
-  }
   if (Xbox.getRawButtonPressed(3)){
       bothTake = 2;
   }
@@ -1069,9 +1080,9 @@ public class Robot extends TimedRobot {
           coneintake = true;
       }
       if (coneintake == true){
-          SRX_1.set(1);
-          SRX_2.set(1);
-          SRX_3.set(1);
+          SRX_1.set(-0.6);
+          SRX_2.set(-0.6);
+          SRX_3.set(-0.6);
           Lights.set(true);
           Vent1.set(false);
           Vent2.set(false);
@@ -1092,25 +1103,26 @@ public class Robot extends TimedRobot {
   }
 
   // turning it on based on the button pressed
-  if (bothTake == 2){
-      SRX_1.set(1);
-      SRX_2.set(1);
-      SRX_3.set(1);
+  if (bothTake == 3){
+      SRX_1.set(-0.05);
+      SRX_2.set(-0.05);
+      SRX_3.set(-0.05);
       Vent1.set(false);
       Vent2.set(false);
       Vent3.set(false);
       //ClawMotor.set(0.3);
   }
   // toggling the button off based on the button pressed
-  else if (bothTake == 3){
+  else if (bothTake == 4){
       coneintake = false;
       long now = System.currentTimeMillis();
+
       if (now - last <= 3000){
           //ClawMotor.set(-0.15);
       SmartDashboard.putString("DB/String 2", ("timer no done :("));
-      SRX_1.set(0);
-      SRX_2.set(0);
-      SRX_3.set(0);
+      SRX_1.set(0.2);
+      SRX_2.set(0.2);
+      SRX_3.set(0.2);
 
       Vent1.set(true);
       Vent2.set(true);
@@ -1121,6 +1133,10 @@ public class Robot extends TimedRobot {
       Vent1.set(false);
       Vent2.set(false);
       Vent3.set(false);
+
+      SRX_1.set(0.0);
+      SRX_2.set(0.0);
+      SRX_3.set(0.0);
 
       bothTake = 1;
       last = System.currentTimeMillis();
@@ -1157,8 +1173,23 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
 
+    SmartDashboard.putString("DB/String 1", "ArmValue" + String.valueOf(AverageArmEncoderValue));
+
+    if (Xbox.getRawButton(2)) {
+      ArmUpOne.set(-0.25);
+      ArmUpTwo.set(0.25);    
+    }
+    else if (Xbox.getRawButton(1)) {
+      ArmUpOne.set(0.25);
+      ArmUpTwo.set(-0.25);
+    }
+    else {
+      ArmUpOne.set(0);
+      ArmUpTwo.set(0);
+    }
+  }
   @Override
   public void simulationInit() {}
 
