@@ -85,7 +85,8 @@ public class Robot extends TimedRobot {
   public double speed;
   public double AverageEncoderValue;
   public double AverageArmEncoderValue;
-
+  public double newEncoderUno;
+  public double newEncoderDos;
   public boolean autoStart = false;
   public double maxextensionlimit;
   public double mainlimit;
@@ -887,29 +888,40 @@ public class Robot extends TimedRobot {
 
     LeftEncoderValue = -LeftEncoder.getPosition();
     RightEncoderValue = RightEncoder.getPosition();
+
+   
+
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
 
+    //ArmOneEncoder = ArmUpOne.getEncoder();
+    // ArmTwoEncoder = ArmUpTwo.getEncoder();
+    newEncoderUno = -ArmOneEncoder.getPosition();
+    newEncoderDos = ArmTwoEncoder.getPosition();
 
-    ArmOneEncoder = ArmUpOne.getEncoder();
-    ArmTwoEncoder = ArmUpTwo.getEncoder();
-
-    ArmOneEncoderValue = -ArmOneEncoder.getPosition();
-    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
+    if (String.valueOf(newEncoderUno) != ("") && String.valueOf(newEncoderDos) != ("")) {
+      ArmOneEncoderValue = newEncoderUno;
+      ArmTwoEncoderValue = newEncoderDos;
+    }
     AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
-
+    /*
+    if (String.valueOf(newEncoderUno) == ("") && String.valueOf(newEncoderDos) == ("")) {
+      ArmOneEncoderValue = newEncoderUno;
+      ArmTwoEncoderValue = newEncoderDos;
+    }
+     */
     //controls.controls();
     if (buttonValueTwo == true){
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
       Xbox.setRumble(GenericHID.RumbleType.kLeftRumble, 1.0);
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
-  }
-  else if (buttonValueTwo == false){
+    }
+    else if (buttonValueTwo == false){
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
       Xbox.setRumble(GenericHID.RumbleType.kLeftRumble, 0.0);
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
       Xbox.setRumble(GenericHID.RumbleType.kRightRumble, 0.0);
-  }
+    }
 
   // 41 inches
   // 2988.303 is multiplier by inches
@@ -936,44 +948,43 @@ public class Robot extends TimedRobot {
   }
 
   if (Xbox.getRawButton(8)){
-      // arm to go
-      SmartDashboard.putString("DB/String 2", ("88888888888888"));
-      if (extensionvalue <= maxextensionlimit){
-        if (extensionvalue <= 75000){
-            Piston.set(true);
-            ExtensionMotorOne.set(0.3);
-            ExtensionMotorTwo.set(0.3);
-        }
-        else{
-            ExtensionMotorOne.set(0.0);
-            ExtensionMotorTwo.set(0.0);
-            Piston.set(false);
-        }
+    // arm to go
+    if (extensionvalue <= maxextensionlimit){
+      if (extensionvalue <= 75000){
+          Piston.set(true);
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
       }
       else{
           ExtensionMotorOne.set(0.0);
           ExtensionMotorTwo.set(0.0);
+          Piston.set(false);
       }
+    }
+    else{
+        ExtensionMotorOne.set(0.0);
+        ExtensionMotorTwo.set(0.0);
+    }
 
-      if (AverageArmEncoderValue >= -47){
-        if (AverageArmEncoderValue <= -17.5){
-            ArmUpOne.set(-0.25);
-            ArmUpTwo.set(0.25);
-        }
-        // arm to go down
-        else if (AverageArmEncoderValue >= -15.5){
-            ArmUpOne.set(0.25);
-            ArmUpTwo.set(-0.25);
-        }
-        else{
-            ArmUpOne.set(0);
-            ArmUpTwo.set(0);
-        }
+    if (AverageArmEncoderValue >= -47){
+      if (AverageArmEncoderValue <= -17.5){
+          ArmUpOne.set(-0.25);
+          ArmUpTwo.set(0.25);
+      }
+      // arm to go down
+      else if (AverageArmEncoderValue >= -15.5){
+          ArmUpOne.set(0.25);
+          ArmUpTwo.set(-0.25);
       }
       else{
           ArmUpOne.set(0);
           ArmUpTwo.set(0);
       }
+    }
+    else{
+        ArmUpOne.set(0);
+        ArmUpTwo.set(0);
+    }
   }
   // Between ___ & 41 inches, the arm can retract & extend
       if (extensionvalue <= maxextensionlimit && extensionvalue > 0.0){
@@ -1067,80 +1078,22 @@ public class Robot extends TimedRobot {
               currentarm = ArmOneEncoder.getPosition();
           }
       }
-  if (Xbox.getRawButtonPressed(3)){
-      bothTake = 2;
+  if (Xbox.getRawAxis(3) >= 0.1){
+      SRX_1.set(-0.6);
+      SRX_2.set(-0.6);
+      SRX_3.set(-0.6);
   }
-  if (Xbox.getRawButtonPressed(4)){
-      bothTake = 3;
-  }
+  else if (Xbox.getRawAxis(2) >= 0.1){
 
-  // Cone intake
-  if (bothTake == 1){
-      if (Xbox.getRawAxis(3) >= 0.1){
-          coneintake = true;
-      }
-      if (coneintake == true){
-          SRX_1.set(-0.6);
-          SRX_2.set(-0.6);
-          SRX_3.set(-0.6);
-          Lights.set(true);
-          Vent1.set(false);
-          Vent2.set(false);
-          Vent3.set(false);
-          //ClawMotor.set(0.3);
-      }
-      else{
-      SRX_1.set(0);
-      SRX_2.set(0);
-      SRX_3.set(0);
-      Lights.set(false);
-      Vent1.set(true);
-      Vent1.set(true);
-      Vent1.set(true);
-
-      //ClawMotor.set(0);
-      }
+      SRX_1.set(.3);
+      SRX_2.set(.3);
+      SRX_3.set(.3);
   }
 
-  // turning it on based on the button pressed
-  if (bothTake == 3){
-      SRX_1.set(-0.05);
-      SRX_2.set(-0.05);
-      SRX_3.set(-0.05);
-      Vent1.set(false);
-      Vent2.set(false);
-      Vent3.set(false);
-      //ClawMotor.set(0.3);
-  }
-  // toggling the button off based on the button pressed
-  else if (bothTake == 4){
-      coneintake = false;
-      long now = System.currentTimeMillis();
-
-      if (now - last <= 3000){
-          //ClawMotor.set(-0.15);
-      SmartDashboard.putString("DB/String 2", ("timer no done :("));
-      SRX_1.set(0.2);
-      SRX_2.set(0.2);
-      SRX_3.set(0.2);
-
-      Vent1.set(true);
-      Vent2.set(true);
-      Vent3.set(true);
-      }
-      else{
-      SmartDashboard.putString("DB/String 2", ("timer done"));
-      Vent1.set(false);
-      Vent2.set(false);
-      Vent3.set(false);
-
-      SRX_1.set(0.0);
-      SRX_2.set(0.0);
-      SRX_3.set(0.0);
-
-      bothTake = 1;
-      last = System.currentTimeMillis();
-      }
+  else{
+    SRX_1.set(-.15);
+    SRX_2.set(-.15);
+    SRX_3.set(-.15);
   }
 
   if (JoyStick1.getRawButton(1)){
