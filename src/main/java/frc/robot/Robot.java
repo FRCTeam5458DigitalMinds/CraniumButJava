@@ -835,7 +835,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    SmartDashboard.putString("DB/String 2", ("i am normal"));
     ArmOneEncoder = ArmUpOne.getEncoder();
     ArmTwoEncoder = ArmUpTwo.getEncoder();
     timerStarted = false;
@@ -947,45 +946,45 @@ public class Robot extends TimedRobot {
       Piston.set(false);
   }
 
-  if (Xbox.getRawButton(8)){
-    // arm to go
-    if (extensionvalue <= maxextensionlimit){
-      if (extensionvalue <= 75000){
-          Piston.set(true);
-          ExtensionMotorOne.set(0.3);
-          ExtensionMotorTwo.set(0.3);
-      }
-      else{
-          ExtensionMotorOne.set(0.0);
-          ExtensionMotorTwo.set(0.0);
-          Piston.set(false);
-      }
-    }
-    else{
-        ExtensionMotorOne.set(0.0);
-        ExtensionMotorTwo.set(0.0);
-    }
+  // if (Xbox.getRawButton(8)){
+  //   // arm to go
+  //   if (extensionvalue <= maxextensionlimit){
+  //     if (extensionvalue <= 75000){
+  //         Piston.set(true);
+  //         ExtensionMotorOne.set(0.3);
+  //         ExtensionMotorTwo.set(0.3);
+  //     }
+  //     else{
+  //         ExtensionMotorOne.set(0.0);
+  //         ExtensionMotorTwo.set(0.0);
+  //         Piston.set(false);
+  //     }
+  //   }
+  //   else{
+  //       ExtensionMotorOne.set(0.0);
+  //       ExtensionMotorTwo.set(0.0);
+  //   }
 
-    if (AverageArmEncoderValue >= -47){
-      if (AverageArmEncoderValue <= -17.5){
-          ArmUpOne.set(-0.25);
-          ArmUpTwo.set(0.25);
-      }
-      // arm to go down
-      else if (AverageArmEncoderValue >= -15.5){
-          ArmUpOne.set(0.25);
-          ArmUpTwo.set(-0.25);
-      }
-      else{
-          ArmUpOne.set(0);
-          ArmUpTwo.set(0);
-      }
-    }
-    else{
-        ArmUpOne.set(0);
-        ArmUpTwo.set(0);
-    }
-  }
+  //   if (AverageArmEncoderValue >= -47){
+  //     if (AverageArmEncoderValue <= -17.5){
+  //         ArmUpOne.set(-0.25);
+  //         ArmUpTwo.set(0.25);
+  //     }
+  //     // arm to go down
+  //     else if (AverageArmEncoderValue >= -15.5){
+  //         ArmUpOne.set(0.25);
+  //         ArmUpTwo.set(-0.25);
+  //     }
+  //     else{
+  //         ArmUpOne.set(0);
+  //         ArmUpTwo.set(0);
+  //     }
+  //   }
+  //   else{
+  //       ArmUpOne.set(0);
+  //       ArmUpTwo.set(0);
+  //   }
+  // }
   // Between ___ & 41 inches, the arm can retract & extend
       if (extensionvalue <= maxextensionlimit && extensionvalue > 0.0){
         if (Xbox.getRawButton(1)){
@@ -1006,7 +1005,6 @@ public class Robot extends TimedRobot {
       }
       // arm only retract
       if (extensionvalue >= maxextensionlimit){
-        SmartDashboard.putString("DB/String 2", ("i am too long"));
           if (Xbox.getRawButton(2)){
             ExtensionMotorOne.set(-0.3);
             ExtensionMotorTwo.set(-0.3);
@@ -1020,7 +1018,6 @@ public class Robot extends TimedRobot {
       }
       // arm only extend
       if (extensionvalue <= 0.0) {
-        SmartDashboard.putString("DB/String 2", ("i am too short"));
         if (Xbox.getRawButton(1)){
           ExtensionMotorOne.set(0.3);
           ExtensionMotorTwo.set(0.3);
@@ -1036,13 +1033,11 @@ public class Robot extends TimedRobot {
       if ((AverageArmEncoderValue >= -25) && (AverageArmEncoderValue <= 0)){
           // autopreset for cube
           if (Xbox.getRawButton(6)){
-              SmartDashboard.putString("DB/String 2", ("6666666666666666"));
               ArmUpOne.set(-0.25);
               ArmUpTwo.set(0.25);
               currentarm = ArmOneEncoder.getPosition();
           }
           else if (Xbox.getRawButton(5)){
-              SmartDashboard.putString("DB/String 2", ("555555555555"));
               ArmUpOne.set(0.25);
               ArmUpTwo.set(-0.25);
               currentarm = ArmOneEncoder.getPosition();
@@ -1127,20 +1122,40 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-
-    SmartDashboard.putString("DB/String 1", "ArmValue" + String.valueOf(AverageArmEncoderValue));
-
-    if (Xbox.getRawButton(2)) {
-      ArmUpOne.set(-0.25);
-      ArmUpTwo.set(0.25);    
-    }
-    else if (Xbox.getRawButton(1)) {
-      ArmUpOne.set(0.25);
-      ArmUpTwo.set(-0.25);
-    }
-    else {
-      ArmUpOne.set(0);
-      ArmUpTwo.set(0);
+    ArmOneEncoderValue = ArmOneEncoder.getPosition();
+    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
+    AverageArmEncoderValue = (ArmOneEncoderValue + ArmTwoEncoderValue)/2;
+    System.out.println(ArmOneEncoderValue);
+    System.out.println(ArmTwoEncoderValue);
+    System.out.println(AverageArmEncoderValue);
+    if (Xbox.getRawButton(8)){
+      if (extensionvalue <= 74500){
+          Piston.set(true);
+          ExtensionMotorOne.set(0.3);
+          ExtensionMotorTwo.set(0.3);
+      }
+      else if(extensionvalue >= 75500){
+        Piston.set(true);
+        ExtensionMotorOne.set(-0.2);
+        ExtensionMotorTwo.set(-0.2);
+      }
+      else{
+          ExtensionMotorOne.set(0.0);
+          ExtensionMotorTwo.set(0.0);
+          Piston.set(false);
+      }
+      if(AverageArmEncoderValue <= -10){
+        ArmUpOne.set(0.1);
+        ArmUpTwo.set(0.1);
+      }
+      else if(AverageArmEncoderValue >= -10){
+        ArmUpOne.set(-0.1);
+        ArmUpTwo.set(-0.1);
+      }
+      else{
+        ArmUpOne.set(0);
+        ArmUpTwo.set(0);
+      }
     }
   }
   @Override
