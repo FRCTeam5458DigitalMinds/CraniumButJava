@@ -242,12 +242,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
+
     // Enabling the PCM compressor
     Piston.set(false);
+    
     ///define yaw, pitch, roll
     YAW = gyro.getYaw();
     PITCH = gyro.getPitch();
     ROLL = gyro.getRoll() - 2;
+
     //display the values to the dashboard
     SmartDashboard.putString("DB/String 8", String.valueOf(ROLL));
     SmartDashboard.putString("DB/String 9", String.valueOf(YAW));
@@ -270,15 +273,26 @@ public class Robot extends TimedRobot {
       SmartDashboard.putString("DB/String 3", "AutoThree");
     }
 
+
+    LeftEncoder = FrontLeftMotor.getEncoder();
+    RightEncoder = FrontRightMotor.getEncoder();
+
     //defining AverageEncoderValue averaging encoders makes encoder values more accurate (removes outliers)
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
     // inverse left encoder value so they move in the same direction
+
     LeftEncoderValue = -LeftEncoder.getPosition();
     RightEncoderValue = RightEncoder.getPosition();
 
     //define more encoders to make the arm movement more accurate
-    AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
+    ArmOneEncoder = ArmUpOne.getEncoder();
+    ArmTwoEncoder = ArmUpTwo.getEncoder();
+
     ArmOneEncoderValue = -ArmOneEncoder.getPosition();
+    ArmTwoEncoderValue = -ArmTwoEncoder.getPosition();
+
+    AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
+
     extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
     
     //Fix these autos
@@ -297,6 +311,8 @@ public class Robot extends TimedRobot {
       {
         CurrentCheckTime = System.currentTimeMillis();
         
+        System.out.println(LastCheckedTime + "" + autoStep + "" + CurrentCheckTime);
+
         if ((CurrentCheckTime - LastCheckedTime) >= 2000)
         {
           autoStep = 3;
