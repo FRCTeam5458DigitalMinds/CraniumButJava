@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+
+
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -18,6 +20,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -84,7 +87,7 @@ public class Robot extends TimedRobot {
 
   //used for drivetrain speed
   public double speed;
-
+  public Timer auto_Timer = new Timer();
   //these variables control extension limit and angle limit for the arm
   //used so our robot is legal and doesn't break the frc guidelines and we don't get banned
   public double maxextensionlimit;
@@ -117,8 +120,7 @@ public class Robot extends TimedRobot {
   //DB/String 2 is a field in the smart dashboard, just a variable to pick the print section
   public String autoChooser = SmartDashboard.getString("DB/String 2", "myDefaultData");;
 
-  // Timer for autos
-  public long last = System.currentTimeMillis();
+ 
 
   // Smart dashboard values for buttons
   public boolean buttonValue;
@@ -224,6 +226,7 @@ public class Robot extends TimedRobot {
     // Reseting all of the encoder values, for teleop and auto
     // Enabling the PCM compressor/Pnuematically controlled, 
     pcmCompressor.enableDigital();
+    
     ArmOneEncoder.setPosition(0);
     ArmTwoEncoder.setPosition(0);
     ExtensionMotorOne.setSelectedSensorPosition(0);
@@ -299,23 +302,19 @@ public class Robot extends TimedRobot {
     //26.5
     if (autoChooser == "1")
     {
-    
       if (autoStep == 1)
       {
         //declares timer
-        LastCheckedTime = System.currentTimeMillis();
+        auto_Timer.start();
         autoStep = 2;
       }
       
       if (autoStep == 2)
-      {
-        CurrentCheckTime = System.currentTimeMillis();
-        
-        System.out.println(LastCheckedTime + "" + autoStep + "" + CurrentCheckTime);
-
-        if ((CurrentCheckTime - LastCheckedTime) >= 2000)
+      {        
+        if ((auto_Timer.get()) >= 2)
         {
           autoStep = 3;
+          auto_Timer.stop();
         } else {
           Intake.set(-0.3);
         }
@@ -325,6 +324,7 @@ public class Robot extends TimedRobot {
         Intake.set(0);
       }
     }
+    /* 
 //spit out and leave community
     if (autoChooser == "2"){
       if (autoStep == 1){
@@ -877,7 +877,7 @@ public class Robot extends TimedRobot {
           }
         }
       }
-    }
+    } */
   }
 
   //default package
