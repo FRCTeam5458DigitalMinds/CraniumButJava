@@ -1144,11 +1144,11 @@ public class Robot extends TimedRobot {
           ExtensionMotorTwo.set(0.0);
           Piston.set(false);
       }
-      if(AverageArmEncoderValue <= -10){
+      if(AverageArmEncoderValue <= -9){
         ArmUpOne.set(0.1);
         ArmUpTwo.set(0.1);
       }
-      else if(AverageArmEncoderValue >= -10){
+      else if(AverageArmEncoderValue >= -11){
         ArmUpOne.set(-0.1);
         ArmUpTwo.set(-0.1);
       }
