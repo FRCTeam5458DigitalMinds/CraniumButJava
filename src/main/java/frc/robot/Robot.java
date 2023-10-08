@@ -1198,7 +1198,6 @@ public class Robot extends TimedRobot {
     ExtensionMotorOne.getSelectedSensorPosition();
 
     System.out.println(ArmOneEncoderValue);
-    System.out.println(ArmOneEncoderValue);
     System.out.println(ArmTwoEncoderValue);
     System.out.println(AverageArmEncoderValue);
 
