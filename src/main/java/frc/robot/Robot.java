@@ -14,7 +14,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 
-import edu.wpi.first.cameraserver.CameraServer;
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -100,6 +100,7 @@ public class Robot extends TimedRobot {
   public double currentLimit = 60;
   public double triggerThresholdCurrent = 60;
   public double triggerThresholdTime = .1;
+  public boolean timer_started = false;
 
   //used to set the new arm extension limit
   //when the arm angles down, the extension limit decreases due to this factor
@@ -165,9 +166,7 @@ public class Robot extends TimedRobot {
     //disable compressor cause you legally cannot have energy stored in robot upon start
     pcmCompressor.disable();
 
-    //start the connection to the camera
-    CameraServer.startAutomaticCapture();
-
+   
     // Motor supply limits
     SupplyCurrentLimitConfiguration current_limit_config = new SupplyCurrentLimitConfiguration(enable, currentLimit, triggerThresholdCurrent, triggerThresholdTime);
     ExtensionMotorOne.configSupplyCurrentLimit(current_limit_config);
@@ -239,8 +238,6 @@ public class Robot extends TimedRobot {
     ExtensionMotorOne.setSelectedSensorPosition(0);
     ExtensionMotorTwo.setSelectedSensorPosition(0);
 
-    // starting camera
-    CameraServer.startAutomaticCapture();
   }
 
   @Override
@@ -280,19 +277,22 @@ public class Robot extends TimedRobot {
     LeftEncoder = FrontLeftMotor.getEncoder();
     RightEncoder = FrontRightMotor.getEncoder();
 
+    LeftEncoderValue = -LeftEncoder.getPosition();
+    RightEncoderValue = RightEncoder.getPosition();
+
     //defining AverageEncoderValue averaging encoders makes encoder values more accurate (removes outliers)
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
     // inverse left encoder value so they move in the same direction
 
-    LeftEncoderValue = -LeftEncoder.getPosition();
-    RightEncoderValue = RightEncoder.getPosition();
+
 
     //define more encoders to make the arm movement more accurate
     ArmOneEncoder = ArmUpOne.getEncoder();
     ArmTwoEncoder = ArmUpTwo.getEncoder();
 
+
     ArmOneEncoderValue = -ArmOneEncoder.getPosition();
-    ArmTwoEncoderValue = -ArmTwoEncoder.getPosition();
+    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
 
     AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
 
@@ -311,7 +311,7 @@ public class Robot extends TimedRobot {
       
       if (autoStep == 2)
       {        
-        if ((auto_Timer.get()) >= 2)
+        if ((auto_Timer.get()) > 2)
         {
           autoStep = 3;
           auto_Timer.stop();
@@ -1190,10 +1190,28 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
+    auto_Timer.reset();
+    pcmCompressor.enableDigital();
+
   }
 
   @Override
   public void testPeriodic() {
+    if (!timer_started) {
+      auto_Timer.start();
+      timer_started = true;
+    }
+
+    SmartDashboard.putString("DB/String 0", "timer: " + String.valueOf(auto_Timer.get()));
+
+    if (auto_Timer.get() > 5) {
+      System.out.println("Timer over 5");
+    } else {
+      System.out.println("Timer under/equal 5");
+    }
+
+
+    /* 
     ArmOneEncoderValue = ArmOneEncoder.getPosition();
     ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
     AverageArmEncoderValue = (ArmOneEncoderValue + ArmTwoEncoderValue)/2;
@@ -1232,6 +1250,7 @@ public class Robot extends TimedRobot {
         ArmUpTwo.set(0);
       }
     }
+    */
   }
   @Override
   public void simulationInit() {}
