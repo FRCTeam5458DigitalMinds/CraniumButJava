@@ -150,7 +150,7 @@ public class Robot extends TimedRobot {
     RelativeEncoder ArmTwoEncoder = ArmUpTwo.getEncoder();
 
     //initial calibrations of all the sensors 
-    IntakePiston.set(true);
+    IntakePiston.set(false);
     Piston.set(false);
     gyro.reset();
     gyro.calibrate();
@@ -225,26 +225,19 @@ public class Robot extends TimedRobot {
     // Reseting all of the encoder values, for teleop and auto
     // Enabling the PCM compressor/Pnuematically controlled, 
     pcmCompressor.enableDigital();
-    
-    ArmOneEncoder.setPosition(0);
-    ArmTwoEncoder.setPosition(0);
-    ExtensionMotorOne.setSelectedSensorPosition(0);
-    ExtensionMotorTwo.setSelectedSensorPosition(0);
+   
+    auto_Timer.reset();
     gyro.reset();
     gyro.setYaw(0);
     autoStep = 1;
     RightEncoder.setPosition(0);
     LeftEncoder.setPosition(0);
-    ExtensionMotorOne.setSelectedSensorPosition(0);
-    ExtensionMotorTwo.setSelectedSensorPosition(0);
-
   }
 
   @Override
   public void autonomousPeriodic() {
-
+     
     // Enabling the PCM compressor
-    Piston.set(false);
     
     ///define yaw, pitch, roll
     YAW = gyro.getYaw();
@@ -254,7 +247,9 @@ public class Robot extends TimedRobot {
     //display the values to the dashboard
     SmartDashboard.putString("DB/String 8", String.valueOf(ROLL));
     SmartDashboard.putString("DB/String 9", String.valueOf(YAW));
-    SmartDashboard.putString("DB/String 4", String.valueOf(maxextensionlimit));
+    
+    System.out.println(autoChooser);
+
     SmartDashboard.putString("DB/String 7", ("Left: " + String.valueOf(AverageEncoderValue)));
     SmartDashboard.putString("DB/String 0", ("Left: " + String.valueOf(LeftEncoderValue)));
     SmartDashboard.putString("DB/String 1", ("Right: " + String.valueOf(RightEncoderValue)));
@@ -284,600 +279,24 @@ public class Robot extends TimedRobot {
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
     // inverse left encoder value so they move in the same direction
 
-
-
-    //define more encoders to make the arm movement more accurate
-    ArmOneEncoder = ArmUpOne.getEncoder();
-    ArmTwoEncoder = ArmUpTwo.getEncoder();
-
-
-    ArmOneEncoderValue = -ArmOneEncoder.getPosition();
-    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
-
-    AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
-
-    extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
-    
     //Fix these autos
-    //26.5
+    //26.5 = 5ft
     if (autoChooser == "1")
     {
-      if (autoStep == 1)
-      {
-        //declares timer
+      if (!timer_started) {
         auto_Timer.start();
-        autoStep = 2;
+        timer_started = true;
       }
-      
-      if (autoStep == 2)
-      {        
-        if ((auto_Timer.get()) > 2)
-        {
-          autoStep = 3;
-          auto_Timer.stop();
-        } else {
-          Intake.set(-0.3);
-        }
-      }
-      if (autoStep == 3)
-      {
-        Intake.set(0);
-      }
-    }
-    /* 
-//spit out and leave community
-    if (autoChooser == "2"){
-      if (autoStep == 1){
-        IntakePiston.set(false);
+  
+      SmartDashboard.putString("DB/String 4", "timer: " + String.valueOf(auto_Timer.get()));
+  
+      if (auto_Timer.get() < 5) {
         Intake.set(-0.3);
-        long now = System.currentTimeMillis();
-        if(now - last >= 2000){
-          Intake.set(0);
-          autoStep++;
-        }
-      }
-
-      if (autoStep == 2 && AverageEncoderValue >= -37){
-        speed = 0.4;
-        FrontRightMotor.set(-speed);
-        FrontLeftMotor.set(speed);
-        autoStep++;
-      }
-      else if (autoStep == 3 && AverageEncoderValue <= -37){
-        FrontLeftMotor.set(0);
-        FrontRightMotor.set(0);
-      }
-    }
-
-    // Auto 3: Score and leave the community
-    if (autoChooser == "3"){
-
-      // Arm and Extension (Scoring during auto)
-      extensionvalue = ExtensionMotorOne.getSelectedSensorPosition();
-
-      if (autoStep == 1){
-        //ClawMotor.set(0.3);
-        SRX_1.set(1);
-        SRX_2.set(1);
-        SRX_3.set(1);
-        if (AverageArmEncoderValue >= highscorearm){
-          ArmUpOne.set(0.2);
-          ArmUpTwo.set(-0.2);
-        }
-        else{
-          ArmUpOne.set(0);
-          ArmUpTwo.set(0);
-        }
-        if (extensionvalue <= highscoreextend){
-          ExtensionMotorOne.set(0.3);
-          ExtensionMotorTwo.set(0.3);
-        }
-        else{
-          ExtensionMotorOne.set(0);
-          ExtensionMotorTwo.set(0);
-        }
-        if (extensionvalue >= highscoreextend && AverageArmEncoderValue <= highscorearm){
-          autoStep++;
-          last = System.currentTimeMillis();
-        }
-      }
-      // this will drop the cube
-      else if (autoStep == 2){
-        long now = System.currentTimeMillis();
-        if (now - last <= 2000){
-          SRX_1.set(0);
-          SRX_2.set(0);
-          SRX_3.set(0);
-          //ClawMotor.set(-0.3);
-        }
-
-        if (now - last >= 2000){
-          if (AverageArmEncoderValue <= -2){
-            ArmUpOne.set(-0.2);
-            ArmUpTwo.set(0.2);
-          }
-          else{
-            ArmUpOne.set(0);
-            ArmUpTwo.set(0);
-          }
-          if (extensionvalue >= 3000){
-            ExtensionMotorOne.set(-0.3);
-            ExtensionMotorTwo.set(-0.3);
-          }
-          else{
-            ExtensionMotorOne.set(0);
-            ExtensionMotorTwo.set(0);
-            //autoStep++;
-          }
-        }
-      }
-      // Drive out of the community
-      else if (autoStep == 3){
-        // detects tha balance of the robot
-        if (YAW <= 3 && YAW >= -3){
-          if (autoStep == 2 && AverageEncoderValue >= -30){
-            speed = -0.3;
-            FrontRightMotor.set(speed);
-            FrontLeftMotor.set(-speed);
-          }
-        }
-        // this statement corrects the orientation of the robot. (PID)
-        else{ 
-          if (AverageEncoderValue >= -30){
-            if (YAW >= 3){
-              FrontRightMotor.set(speed);
-              FrontLeftMotor.set(-speed * 0.7);
-            }
-            if (YAW <= -3){
-              FrontRightMotor.set(speed * 0.7);
-              FrontLeftMotor.set(-speed);
-            }
-          }
-        }
-      }
-    }
-
-    // Auto 4: Scoring High
-    if (autoChooser == "4")
-    {
-      // Arm and Extension (Scoring during auto)
-      if (autoStep == 1)
-      {
-        if (AverageArmEncoderValue >= highscorearm)
-        { //Lower Arm
-          ArmUpOne.set(0.2);
-          ArmUpTwo.set(-0.2);
-        }
-        else
-        {
-          //Set arm to 0 if at the correct location
-          ArmUpOne.set(0);
-          ArmUpTwo.set(0);
-        }
-        if (extensionvalue <= highscoreextend)
-        {
-          //Extends arm  
-          ExtensionMotorOne.set(0.3);
-          ExtensionMotorTwo.set(0.3);
-        }
-        else
-        {
-          //Set arm to 0
-          ExtensionMotorOne.set(0);
-          ExtensionMotorTwo.set(0);
-        }
-        if (extensionvalue >= highscoreextend && AverageArmEncoderValue <= highscorearm)
-        {
-          //Increment autostep
-          autoStep++;
-          //Convey time
-          last = System.currentTimeMillis();
-        }
-      }
-      else if (autoStep == 2)
-      {
-        //Claw stops after certain amount of time (2 Seconds)
-        long now = System.currentTimeMillis();
-        if (now - last >= 2000)
-        {
-          SRX_1.set(0);
-          SRX_2.set(0);
-          SRX_3.set(0);
-          //ClawMotor.set(-0.3);
-          //added
-        }
-
-        if (now- last >= 2000)
-        {
-          if (AverageArmEncoderValue <= 7)
-          {
-            ArmUpOne.set(-0.2);
-            ArmUpTwo.set(0.2);
-          }
-          else
-          {
-            ArmUpOne.set(0);
-            ArmUpTwo.set(0);
-          }
-          if (extensionvalue >= 3000)
-          {
-            ExtensionMotorOne.set(-0.3);
-            ExtensionMotorTwo.set(-0.3);
-          }
-          else
-          {
-            ExtensionMotorOne.set(0);
-            ExtensionMotorTwo.set(0);
-          }
-        }
-      }
-    }
-    //Auto 5: 
-    if (autoChooser == "5"){
-      if (autoStep == 1){
-        //spits
-        IntakePiston.set(false);
-        Intake.set(-0.4);
-        long now = System.currentTimeMillis();
-        //makes sure we're not going over time
-        if (now - last >= 1500){
-          Intake.set(0);
-          autoStep++;
-
-          //Scores cube low
-        }
-        
-      }
-      // Leave Community
-      if (autoStep == 2){
-        //ensures the orientation of the robot in reference to yaw (z axis)
-        if (YAW <= 3 && YAW >= -3){
-          //checks for distance
-          if (autoStep == 2 && AverageEncoderValue >= -45){
-            speed = -0.3;
-            FrontRightMotor.set(speed * 0.9);
-            FrontLeftMotor.set(-speed);
-          }
-          else{
-            //if it does not have the correct orientation, then dont run
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-          }
-        }
-        else{
-          if (AverageEncoderValue >= -45){
-            //if off course towards the left then power the left side
-            if (YAW >= 3){
-              FrontRightMotor.set(speed);
-              FrontLeftMotor.set(-speed * 0.7);
-            }
-            //if off course towards the right then power the right side 
-            if (YAW <= -3){
-              FrontRightMotor.set(speed * 0.7);
-              FrontLeftMotor.set(-speed);
-            }
-          }
-          else{
-            //if at optimatal orientation, dont correct itself
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-          }
-        }
-      }
-    }
-    // Auto 6
-    if (autoChooser == "6"){
-      if (autoStep == 1){
-        //spits cube
-        IntakePiston.set(false);
-        Intake.set(-0.4);
-        long now = System.currentTimeMillis();
-        //makes sure we are not over time
-        if (now - last >= 1500){
-          Intake.set(0);
-          autoStep++;
-          last = System.currentTimeMillis();
-        }
-      }
-      if (autoStep == 2){
-        //makes sure it gets turned to the proper angle
-        if (YAW <= 173){
-          speed = 0.15;
-          FrontLeftMotor.set(speed);
-          FrontRightMotor.set(speed);
-        }
-        else{
-          //if it is turned enough then don't move and reset drivetrain encoders
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-          RightEncoder.setPosition(0);
-          LeftEncoder.setPosition(0);
-          long now = System.currentTimeMillis();
-          if (now - last >= 500){
-            autoStep++;
-          }
-        }
-      }
-      if (autoStep == 3 && AverageEncoderValue < 31){
-        speed = 0.5;
-        //keeps moving forward until the robot reaches a certain distance
-        FrontRightMotor.set(speed);
-        FrontLeftMotor.set(-speed);
-      }
-      //if far enough...
-      if (autoStep == 3 && AverageEncoderValue >= 31){
-        //idrk...get back to this
-        ROLL = gyro.getRoll() - 2;
-        if (ROLL >= -3 && ROLL <= 3){
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-        }
-        //PID functions
-        if (ROLL >= 3){
-          if (YAW <= 183 && YAW >= 177){
-            FrontLeftMotor.set(0.1);
-            FrontRightMotor.set(-0.09368259);
-          }
-          else if (YAW >= 183){
-            FrontLeftMotor.set(0.1);
-            FrontRightMotor.set(-0.07);
-          }
-          else if (YAW <= 177){
-            FrontLeftMotor.set(0.07);
-            FrontRightMotor.set(-0.1);
-          }
-        }
-        else if (ROLL <= -3){
-          if (YAW <= 183 && YAW >= 177){
-            FrontLeftMotor.set(-0.1);
-            FrontRightMotor.set(0.09368259);
-          }
-          else if (YAW >= 183){
-            FrontLeftMotor.set(-0.07);
-            FrontRightMotor.set(0.1);
-          }
-          else if (YAW <= 177){
-            FrontLeftMotor.set(-0.1);
-            FrontRightMotor.set(0.07);
-          }
-        }
-      }
-    }
-    if (autoChooser == "7"){
-    long now = System.currentTimeMillis();
-    //spits cube
-    IntakePiston.set(false);
-    Intake.set(-0.4);
-    //makes sure we're on time
-      if (now - last >= 1500){
+      } else {
         Intake.set(0);
-        autoStep++;
       }
     }
 
-    if (autoChooser == "8"){
-      long now = System.currentTimeMillis();
-      //spits cube
-      if (autoStep == 1){
-        Intake.set(-0.4);
-        //makes sure we're on time
-        if (now - last >= 1500){
-          Intake.set(0);
-          autoStep++;
-        }
-      }
-      
-      if (autoStep == 2){
-        //if angle is within correct range then go forward?
-        if (YAW <= 173){
-          speed = 0.15;
-          FrontLeftMotor.set(speed);
-          FrontRightMotor.set(speed);
-        }
-        else{
-          // if not within correct angle range then stop?
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-          LeftEncoder.setPosition(0);
-          RightEncoder.setPosition(0);
-          autoStep++;
-        }
-      }
-      if (autoStep == 3){
-        //if at the correct angle...
-        if (YAW <= 180 && YAW >= 174){
-          // and the robot is not far enough...
-          if (AverageEncoderValue <= 55){
-            speed = 0.3;
-            //then drive to be far enough
-            FrontRightMotor.set(speed);
-            FrontLeftMotor.set(-speed);
-          }
-          else{
-            // if far enough then dont drive
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-            autoStep++;
-          }
-        }
-        else{
-          //if robot is not far enough...
-          if (AverageEncoderValue <= 55){
-            //and overturning...
-            if (YAW >= 180){
-              //then speed up on the right side until in the right range
-              FrontRightMotor.set(speed * 0.7);
-              FrontLeftMotor.set(-speed);
-            }
-            //and if underturning...
-            if (YAW <= 174){
-              //then speed up on the left side until in the right range
-              FrontRightMotor.set(speed);
-              FrontLeftMotor.set(-speed * 0.7);
-            }
-          }
-          //if at the correct distance, AND at the right angle, then reinitialize the following components back to 0
-          else{
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-            Intake.set(0);
-            LeftEncoder.setPosition(0);
-            RightEncoder.setPosition(0);
-
-            autoStep++;
-            last = System.currentTimeMillis();
-          }
-        }
-      }
-      if (autoStep == 4){
-        //swallow cube
-        IntakePiston.set(true);
-        Intake.set(0.4);
-        if (now - last >= 2000){
-          IntakePiston.set(false);
-          Intake.set(0);
-          autoStep = 5;
-        }
-      }
-      if (autoStep == 5){
-        if (YAW >= 7){
-          speed = -0.15;
-          FrontLeftMotor.set(speed);
-          FrontRightMotor.set(speed);
-        }
-        else{
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-          LeftEncoder.setPosition(0);
-          RightEncoder.setPosition(0);
-          autoStep++;
-        }
-      }
-      if (autoStep == 6){
-        if (YAW <= 3 && YAW >= -3){
-          if (AverageEncoderValue <= 55){
-            speed = 0.3;
-            FrontRightMotor.set(speed);
-            FrontLeftMotor.set(-speed);
-          }
-          else{
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-            autoStep++;
-          }
-        }
-        else{
-          if (AverageEncoderValue <= 55){
-            if (YAW >= 3){
-              FrontRightMotor.set(speed * 0.7);
-              FrontLeftMotor.set(-speed);
-            }
-            if (YAW <= -3){
-              FrontRightMotor.set(speed);
-              FrontLeftMotor.set(-speed * 0.7);
-            }
-          }
-          else{
-            FrontRightMotor.set(0);
-            FrontLeftMotor.set(0);
-            // autoStep++;
-          }
-        }
-      }
-    }
-
-    if (autoChooser == "9"){
-      long now = System.currentTimeMillis();
-      // dispersing cube
-      if (autoStep == 1){
-        Intake.set(-0.48);
-        if (now - last >= 500){
-          Intake.set(0);
-          autoStep = 2;
-        }
-      }
-      // 180 degree turn
-      if (autoStep == 2){
-        if (YAW <= 173){
-          speed = 0.15;
-          FrontLeftMotor.set(speed);
-          FrontRightMotor.set(speed);
-        }
-        else{
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-          LeftEncoder.setPosition(0);
-          RightEncoder.setPosition(0);
-          autoStep = 3;
-        }
-      }
-      // over charging station
-      if (autoStep == 3 && AverageEncoderValue < 40){
-        speed = 0.3;
-        FrontRightMotor.set(speed * 0.9);
-        FrontLeftMotor.set(-speed);
-      }
-      else{
-        autoStep++;
-      }
-      // turning again
-      if (autoStep == 4){
-        if (YAW >= 7){
-          speed = -0.15;
-          FrontLeftMotor.set(speed);
-          FrontRightMotor.set(speed);
-        }
-        else{  
-          gyro.setYaw(0);
-          LeftEncoder.setPosition(0);
-          RightEncoder.setPosition(0);
-          autoStep++;
-        }
-      }
-      // onto charging station
-      if (autoStep == 5 && AverageEncoderValue < 15){
-        speed = 0.3;
-        FrontRightMotor.set(speed);
-        FrontLeftMotor.set(-speed * 0.9);
-      }
-      // balancing charging station
-      if (autoStep == 5 && AverageEncoderValue >= 15){
-        ROLL = gyro.getRoll() - 2;
-        if (ROLL >= -3 && ROLL <= 3){
-          FrontLeftMotor.set(0);
-          FrontRightMotor.set(0);
-        }
-        if (ROLL >= 3){
-          if (YAW <= 3 && YAW >= -3){
-            speed = -0.07;
-            FrontLeftMotor.set(0.1);
-            FrontRightMotor.set(-0.09);
-          }
-          else if (YAW >= 3){
-            FrontLeftMotor.set(0.1 * 0.7);
-            FrontRightMotor.set(-0.09);
-          }
-          else if (YAW <= -3){
-            FrontLeftMotor.set(0.1);
-            FrontRightMotor.set(-0.09 * 0.7);
-          }
-        }
-        else if (ROLL <= -3){
-          if (YAW <= 3 && YAW >= -3){
-            FrontLeftMotor.set(-0.1);
-            FrontRightMotor.set(0.09);
-          }
-          else if (YAW >= 3){
-            FrontLeftMotor.set(-0.1 * 0.7);
-            FrontRightMotor.set(0.09);
-          }
-          else if (YAW <= -3){
-            FrontLeftMotor.set(-0.1);
-            FrontRightMotor.set(0.09 * 0.7);
-          }
-        }
-      }
-    } */
   }
 
   //default package
@@ -1116,27 +535,27 @@ public class Robot extends TimedRobot {
       }
 
       //if arm enocoder ticks is below -25 the arm can only go up
-      if (AverageArmEncoderValue <= -25){
-          if (Xbox.getRawButton(6)){
-              ArmUpOne.set(-0.25);
-              ArmUpTwo.set(0.25);
-          }
-          else{
-              ArmUpOne.set(0);
-              ArmUpTwo.set(0);
-          }
+      if (AverageArmEncoderValue <= -25) {
+        if (Xbox.getRawButton(6)) {
+            ArmUpOne.set(-0.25);
+            ArmUpTwo.set(0.25);
+        }
+        else {
+            ArmUpOne.set(0);
+            ArmUpTwo.set(0);
+        }
       }
 
       //encoder value greater than 0 then you can retract the arm freely
-      if (AverageArmEncoderValue >= 0){
-          if (Xbox.getRawButton(5)){
-              ArmUpOne.set(0.25);
-              ArmUpTwo.set(-0.25);
-          }
-          else{
-              ArmUpOne.set(0);
-              ArmUpTwo.set(0);
-          }
+      if (AverageArmEncoderValue >= 0) {
+        if (Xbox.getRawButton(5)) {
+            ArmUpOne.set(0.25);
+            ArmUpTwo.set(-0.25);
+        }
+        else {
+            ArmUpOne.set(0);
+            ArmUpTwo.set(0);
+        }
       }
      
   //turns on front suction
@@ -1204,12 +623,11 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putString("DB/String 0", "timer: " + String.valueOf(auto_Timer.get()));
 
-    if (auto_Timer.get() > 5) {
-      System.out.println("Timer over 5");
+    if (auto_Timer.get() < 5) {
+      Intake.set(-0.3);
     } else {
-      System.out.println("Timer under/equal 5");
+      Intake.set(0);
     }
-
 
     /* 
     ArmOneEncoderValue = ArmOneEncoder.getPosition();
