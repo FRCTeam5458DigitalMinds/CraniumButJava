@@ -86,6 +86,7 @@ public class Robot extends TimedRobot {
   public double AverageEncoderValue;
   public double AverageArmEncoderValue;
 
+  public double AverageDriveTrainOffset;
   //used for drivetrain speed
   public double speed;
   public Timer auto_Timer = new Timer();
@@ -120,9 +121,7 @@ public class Robot extends TimedRobot {
   public double extensionvalue;
 
   //DB/String 2 is a field in the smart dashboard, just a variable to pick the print section
-  public String autoChooser = SmartDashboard.getString("DB/String 2", "myDefaultData");;
 
- 
 
   // Smart dashboard values for buttons
   public boolean buttonValue;
@@ -138,7 +137,11 @@ public class Robot extends TimedRobot {
   public double goalextend;
 
   private static final String Auto2 = "Default";
-  private static final String Auto1 = "Auto1";
+  private static final String ScoreLow = "ScoreLow";
+  private static final String ScoreLowDriveBack = "ScoreLowDriveBack";
+  private static final String ScoreLowTwice = "ScoreLowTwice";
+  private static final String ScoreLowAndBalance = "ScoreLowAndBalance";
+
   private String m_autoSelected;
 
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
@@ -153,9 +156,11 @@ public class Robot extends TimedRobot {
 
     
     m_chooser.setDefaultOption("Default Auto", Auto2);
-    m_chooser.addOption("Auto 1", Auto1);
-
-    SmartDashboard.putData("DB/String 3", m_chooser);
+    m_chooser.addOption("Score Low", ScoreLow);
+    m_chooser.addOption("Score Low and Drive Back", ScoreLowDriveBack);
+    m_chooser.addOption("Score Low, Grab Cube and Score again", ScoreLowTwice);
+    m_chooser.addOption("Score Low and Balance", ScoreLowAndBalance);
+    SmartDashboard.putData("Auto choices", m_chooser);
 
     //declare encoders
     RelativeEncoder ArmOneEncoder = ArmUpOne.getEncoder();
@@ -233,7 +238,9 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.schedule();
     }
     
+    autoStep = 1;
     m_autoSelected = m_chooser.getSelected();
+
     System.out.println("Auto Selected: " + m_autoSelected);
 
     // Reseting all of the encoder values, for teleop and auto
@@ -263,13 +270,13 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("DB/String 5", String.valueOf(ROLL));
     SmartDashboard.putString("DB/String 6", String.valueOf(YAW));
     
-    SmartDashboard.putString("DB/String 7", ("Left: " + String.valueOf(AverageEncoderValue)));
+    SmartDashboard.putString("DB/String 7", ("Avg: " + String.valueOf(AverageEncoderValue)));
     //SmartDashboard.putString("DB/String 0", "printing to string 0");
-   // SmartDashboard.putString("DB/String 1", ("Right: " + String.valueOf(RightEncoderValue)));
+    SmartDashboard.putString("DB/String 0", ("Left: " + String.valueOf(LeftEncoderValue)));
+
+    SmartDashboard.putString("DB/String 1", ("Right: " + String.valueOf(RightEncoderValue)));
 
     // gets 3rd line from dashboard to run selected auto
-
-    autoChooser = SmartDashboard.getString("DB/String 2", "1");
     // autoChooser = "1";
     //autochooser function
 
@@ -286,78 +293,205 @@ public class Robot extends TimedRobot {
     //Fix these autos
     //26.5 = 5ft
 
-    switch (m_autoSelected) {
-      case Auto1:
-        if (!timer_started) {
+    switch (m_autoSelected) 
+    {
+      case ScoreLow:
+        if (!timer_started)
+        {
           auto_Timer.start();
           timer_started = true;
         }
     
-        if (auto_Timer.get() < 3) {
+        if (auto_Timer.get() < 3) 
+        {
           Intake.set(-0.3);
-        } else {
+        } 
+        else 
+        {
           Intake.set(0);
         }
-       break;
+      break;
+      case ScoreLowDriveBack:
+        if (autoStep == 1) 
+        {
+          if (!timer_started) 
+          {
+            auto_Timer.reset();
+            auto_Timer.start();
+            timer_started = true;
+          }
+           if (auto_Timer.get() > 1.5) 
+           {
+            Intake.set(0);
+            auto_Timer.stop();
+            autoStep = 2;
+          } 
+          else 
+          {
+            Intake.set(-0.3);
+          }
+        }  
+        if (autoStep == 2) 
+        {
+          if (AverageEncoderValue >= -45)
+          {
+            speed = -0.25;
+            FrontRightMotor.set(speed * 0.9368259);
+            FrontLeftMotor.set(-speed);
+          }
+          else
+          {
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+          }
+        }
+      break;
+      case ScoreLowTwice:
+        if (autoStep == 1) 
+        {
+          //if timer has not started then reset timer and start it
+          if (!timer_started) 
+          {
+            gyro.setYaw(0);
+            auto_Timer.reset();
+            auto_Timer.start();
+            timer_started = true;
+          }
+
+          //if over 1.5 seconds have elapsed
+          if (auto_Timer.get() > 1.5) 
+          {
+            //stop intake motors, timer, reset timer started. reset gyro values next step
+            Intake.set(0);
+            auto_Timer.stop();
+            timer_started = false;
+            gyro.reset();
+            autoStep = 2;
+          } 
+          else 
+          {
+            //if less than 1.5 elapsed then outake.
+            Intake.set(-0.3);
+          }
+        }  
+        if (autoStep == 2)
+        {
+          //if have not turned 173 then go
+          if (YAW <= 167)
+          {
+            speed = 0.15;
+            FrontLeftMotor.set(speed);
+            FrontRightMotor.set(speed);
+          }
+          else
+          {
+            //if have turned 173 then stop. reset and ++ autostep
+            FrontLeftMotor.set(0);
+            FrontRightMotor.set(0);
+
+            RightEncoder.setPosition(0);
+            LeftEncoder.setPosition(0);
+
+            autoStep = 3;
+          }
+        }
+        if (autoStep == 3)
+        {
+          if (AverageEncoderValue <= 50)
+          {
+            speed = 0.25;
+            Intake.set(0.4);
+            IntakePiston.set(true);
+            FrontRightMotor.set(speed * 0.9368259);
+            FrontLeftMotor.set(-speed);
+          }
+          else
+          {
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+
+            if (!timer_started) 
+            {
+              auto_Timer.reset();
+              auto_Timer.start();
+              timer_started = true;
+            }
+            if (auto_Timer.get() > 3) 
+            {
+              IntakePiston.set(false);
+              Intake.set(0);
+              auto_Timer.stop();
+              timer_started = false;
+              autoStep = 4;
+            } 
+            else 
+            {
+              Intake.set(0.4);
+              IntakePiston.set(true);
+            }
+          }
+        }
+        if (autoStep == 4)
+        {
+          if (YAW <= 353)
+          {
+            speed = 0.15;
+            FrontLeftMotor.set(speed);
+            FrontRightMotor.set(speed);
+          }
+          else
+          {
+            FrontLeftMotor.set(0);
+            FrontRightMotor.set(0);
+
+            autoStep = 5;
+          }
+        }
+        if (autoStep == 5)
+        {
+          if (AverageEncoderValue <= 109)
+          {
+            speed = 0.25;
+            FrontRightMotor.set(speed * 0.9368259);
+            FrontLeftMotor.set(-speed);
+          }
+          else
+          {
+            FrontRightMotor.set(0);
+            FrontLeftMotor.set(0);
+
+            autoStep = 6;
+          }
+        }
+        if (autoStep == 6)
+        {
+          if (!timer_started) 
+          {
+            auto_Timer.reset();
+            auto_Timer.start();
+            timer_started = true;
+          }
+          if (auto_Timer.get() > 1.5) 
+          {
+            Intake.set(0);
+            auto_Timer.stop();
+            timer_started = false;
+            gyro.reset();
+          } 
+          else 
+          {
+            Intake.set(-0.3);
+          }
+        }
+      break;
+      case ScoreLowAndBalance:
+        
       case Auto2:
       default:
         Intake.set(0);
       break; 
     }
   }
-    /*if (m_autoSelected == Auto1)
-    {
-      SmartDashboard.putString("DB/String 1", "hello");
-
-      if (!timer_started) {
-        auto_Timer.start();
-        timer_started = true;
-      }
-  
-      if (auto_Timer.get() < 3) {
-        Intake.set(-0.3);
-      } else {
-        Intake.set(0);
-      } */
-    
-
-   /* if (autoChooser == "2")
-    {
-      if (autoStep == 1) {
-        if (!timer_started) {
-          auto_Timer.restart();
-          timer_started = true;
-        }
-    
-        SmartDashboard.putString("DB/String 4", "timer: " + String.valueOf(auto_Timer.get()));
-    
-        if (auto_Timer.get() < 3) {
-          Intake.set(-0.3);
-        } else {
-          Intake.set(0);
-          auto_Timer.stop();
-          autoStep = 2;
-        }
-      }  
-      if (autoStep == 2) {
-        if (AverageEncoderValue >= -34)
-        {
-          speed = -0.4;
-          FrontRightMotor.set(speed * 0.9368259);
-          FrontLeftMotor.set(-speed);
-        }
-        else
-        {
-          FrontRightMotor.set(0);
-          FrontLeftMotor.set(0);
-        }
-      }
-    }
-    if (autoChooser == "3")
-    {
-
-    } */
-  
 
   //default package
   @Override
