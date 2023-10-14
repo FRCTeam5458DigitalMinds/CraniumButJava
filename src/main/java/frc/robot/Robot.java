@@ -325,7 +325,7 @@ public class Robot extends TimedRobot {
             Intake.set(0);
             auto_Timer.stop();
             autoStep = 2;
-          } 
+           } 
           else 
           {
             Intake.set(-0.3);
@@ -485,7 +485,87 @@ public class Robot extends TimedRobot {
         }
       break;
       case ScoreLowAndBalance:
-        
+        if (autoStep == 1) 
+        {
+          //if timer has not started then reset timer and start it
+          if (!timer_started) 
+          {
+            gyro.setYaw(0);
+            auto_Timer.reset();
+            auto_Timer.start();
+            timer_started = true;
+          }
+
+          //if over 1.5 seconds have elapsed
+          if (auto_Timer.get() > 1.5) 
+          {
+            //stop intake motors, timer, reset timer started. reset gyro values next step
+            Intake.set(0);
+            auto_Timer.stop();
+            timer_started = false;
+            gyro.reset();
+            autoStep = 2;
+          } 
+          else 
+          {
+            //if less than 1.5 elapsed then outake.
+            Intake.set(-0.3);
+          }
+        }
+        if (autoStep == 2)
+        {
+          if (YAW <= 167)
+          {
+            speed = 0.15;
+            FrontLeftMotor.set(speed);
+            FrontRightMotor.set(speed);
+          }
+          else
+          {
+            //if have turned 173 then stop. reset and ++ autostep
+            FrontLeftMotor.set(0);
+            FrontRightMotor.set(0);
+
+            RightEncoder.setPosition(0);
+            LeftEncoder.setPosition(0);
+
+            autoStep = 3;
+          }  
+        } 
+        if (autoStep == 3)
+        {
+          if (AverageEncoderValue < 26.5)
+          {
+            speed = 0.25;
+
+            FrontLeftMotor.set(-speed);
+            FrontRightMotor.set(speed);
+          }
+          else
+          {
+            autoStep = 4;
+          }
+        }
+        if (autoStep == 4)
+        {
+          ROLL = gyro.getRoll() - 2;
+
+          if (ROLL >= -1 && ROLL <= 1)
+          {
+            FrontLeftMotor.set(0);
+            FrontRightMotor.set(0);
+          }
+          if (ROLL >= 1)
+          {
+            FrontLeftMotor.set(0.3);
+            FrontRightMotor.set(-0.3);
+          }
+          else if (ROLL <= -1)
+          {
+            FrontLeftMotor.set(-0.3);
+            FrontRightMotor.set(0.3);
+          }
+        }
       case Auto2:
       default:
         Intake.set(0);
