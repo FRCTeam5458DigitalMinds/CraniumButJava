@@ -359,7 +359,7 @@ public class Robot extends TimedRobot {
           }
 
           //if over 1.5 seconds have elapsed
-          if (auto_Timer.get() > 1.5) 
+          if (auto_Timer.get() > 1) 
           {
             //stop intake motors, timer, reset timer started. reset gyro values next step
             Intake.set(0);
@@ -377,9 +377,9 @@ public class Robot extends TimedRobot {
         if (autoStep == 2)
         {
           //if have not turned 173 then go
-          if (YAW <= 167)
+          if (YAW <= 150)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
@@ -397,7 +397,7 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 3)
         {
-          if (AverageEncoderValue <= 50)
+          if (AverageEncoderValue <= 53)
           {
             speed = 0.25;
             Intake.set(0.4);
@@ -416,7 +416,7 @@ public class Robot extends TimedRobot {
               auto_Timer.start();
               timer_started = true;
             }
-            if (auto_Timer.get() > 3) 
+            if (auto_Timer.get() > 0.5) 
             {
               IntakePiston.set(false);
               Intake.set(0);
@@ -433,9 +433,9 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 4)
         {
-          if (YAW <= 353)
+          if (YAW <= 332)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
@@ -449,7 +449,7 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 5)
         {
-          if (AverageEncoderValue <= 109)
+          if (AverageEncoderValue <= 115)
           {
             speed = 0.25;
             FrontRightMotor.set(speed * 0.9368259);
@@ -514,9 +514,9 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 2)
         {
-          if (YAW <= 167)
+          if (YAW <= 150)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
