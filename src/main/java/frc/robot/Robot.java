@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -136,6 +137,11 @@ public class Robot extends TimedRobot {
   public double mediumscoreextend;
   public double goalextend;
 
+  private static final String Auto2 = "Default";
+  private static final String Auto1 = "Auto1";
+  private String m_autoSelected;
+
+  private final SendableChooser<String> m_chooser = new SendableChooser<>();
   // variables that we get from the gyro (google if needed)
   public double YAW;
   public double ROLL;
@@ -144,6 +150,12 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
+
+    
+    m_chooser.setDefaultOption("Default Auto", Auto2);
+    m_chooser.addOption("Auto 1", Auto1);
+
+    SmartDashboard.putData("DB/String 3", m_chooser);
 
     //declare encoders
     RelativeEncoder ArmOneEncoder = ArmUpOne.getEncoder();
@@ -221,11 +233,15 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.schedule();
     }
     
-    
+    m_autoSelected = m_chooser.getSelected();
+    System.out.println("Auto Selected: " + m_autoSelected);
+
     // Reseting all of the encoder values, for teleop and auto
     // Enabling the PCM compressor/Pnuematically controlled, 
     pcmCompressor.enableDigital();
    
+    timer_started = false;
+    auto_Timer.stop();
     auto_Timer.reset();
     gyro.reset();
     gyro.setYaw(0);
@@ -244,28 +260,18 @@ public class Robot extends TimedRobot {
     ROLL = gyro.getRoll() - 2;
 
     //display the values to the dashboard
-    SmartDashboard.putString("DB/String 8", String.valueOf(ROLL));
-    SmartDashboard.putString("DB/String 9", String.valueOf(YAW));
+    SmartDashboard.putString("DB/String 5", String.valueOf(ROLL));
+    SmartDashboard.putString("DB/String 6", String.valueOf(YAW));
     
-    System.out.println(autoChooser);
-
     SmartDashboard.putString("DB/String 7", ("Left: " + String.valueOf(AverageEncoderValue)));
-    SmartDashboard.putString("DB/String 0", ("Left: " + String.valueOf(LeftEncoderValue)));
-    SmartDashboard.putString("DB/String 1", ("Right: " + String.valueOf(RightEncoderValue)));
+    //SmartDashboard.putString("DB/String 0", "printing to string 0");
+   // SmartDashboard.putString("DB/String 1", ("Right: " + String.valueOf(RightEncoderValue)));
 
     // gets 3rd line from dashboard to run selected auto
-    autoChooser = SmartDashboard.getString("DB/String 2", "myDefaultData");
-    
+
+    autoChooser = SmartDashboard.getString("DB/String 2", "1");
+    // autoChooser = "1";
     //autochooser function
-    if (autoChooser == "1"){
-      SmartDashboard.putString("DB/String 3", "AutoOne");
-    }
-    else if (autoChooser == "2"){
-      SmartDashboard.putString("DB/String 3", "AutoTwo");
-    }
-    else if (autoChooser == "3"){
-      SmartDashboard.putString("DB/String 3", "AutoThree");
-    }
 
 
     LeftEncoder = FrontLeftMotor.getEncoder();
@@ -276,27 +282,82 @@ public class Robot extends TimedRobot {
 
     //defining AverageEncoderValue averaging encoders makes encoder values more accurate (removes outliers)
     AverageEncoderValue = (LeftEncoderValue + RightEncoderValue) / 2;
-    // inverse left encoder value so they move in the same direction
 
     //Fix these autos
     //26.5 = 5ft
-    if (autoChooser == "1")
+
+    switch (m_autoSelected) {
+      case Auto1:
+        if (!timer_started) {
+          auto_Timer.start();
+          timer_started = true;
+        }
+    
+        if (auto_Timer.get() < 3) {
+          Intake.set(-0.3);
+        } else {
+          Intake.set(0);
+        }
+       break;
+      case Auto2:
+      default:
+        Intake.set(0);
+      break; 
+    }
+  }
+    /*if (m_autoSelected == Auto1)
     {
+      SmartDashboard.putString("DB/String 1", "hello");
+
       if (!timer_started) {
         auto_Timer.start();
         timer_started = true;
       }
   
-      SmartDashboard.putString("DB/String 4", "timer: " + String.valueOf(auto_Timer.get()));
-  
-      if (auto_Timer.get() < 5) {
+      if (auto_Timer.get() < 3) {
         Intake.set(-0.3);
       } else {
         Intake.set(0);
+      } */
+    
+
+   /* if (autoChooser == "2")
+    {
+      if (autoStep == 1) {
+        if (!timer_started) {
+          auto_Timer.restart();
+          timer_started = true;
+        }
+    
+        SmartDashboard.putString("DB/String 4", "timer: " + String.valueOf(auto_Timer.get()));
+    
+        if (auto_Timer.get() < 3) {
+          Intake.set(-0.3);
+        } else {
+          Intake.set(0);
+          auto_Timer.stop();
+          autoStep = 2;
+        }
+      }  
+      if (autoStep == 2) {
+        if (AverageEncoderValue >= -34)
+        {
+          speed = -0.4;
+          FrontRightMotor.set(speed * 0.9368259);
+          FrontLeftMotor.set(-speed);
+        }
+        else
+        {
+          FrontRightMotor.set(0);
+          FrontLeftMotor.set(0);
+        }
       }
     }
+    if (autoChooser == "3")
+    {
 
-  }
+    } */
+  
 
   //default package
   @Override
@@ -374,6 +435,8 @@ public class Robot extends TimedRobot {
     ArmOneEncoder = ArmUpOne.getEncoder();
     ArmTwoEncoder = ArmUpTwo.getEncoder();
 
+    ArmOneEncoderValue = -ArmOneEncoder.getPosition();
+    ArmTwoEncoderValue = ArmTwoEncoder.getPosition();
     //averaging encoder values to get more accurate values (remove outliers)
     AverageArmEncoderValue = (ArmTwoEncoderValue + ArmOneEncoderValue) / 2;
    
@@ -622,7 +685,7 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putString("DB/String 0", "timer: " + String.valueOf(auto_Timer.get()));
 
-    if (auto_Timer.get() < 5) {
+    if (auto_Timer.get() < 3) {
       Intake.set(-0.3);
     } else {
       Intake.set(0);
