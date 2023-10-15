@@ -136,14 +136,20 @@ public class Robot extends TimedRobot {
   public double mediumscoreextend;
   public double goalextend;
 
+  // declaring auto names 
   private static final String Auto2 = "Default";
   private static final String ScoreLow = "ScoreLow";
   private static final String ScoreLowDriveBack = "ScoreLowDriveBack";
   private static final String ScoreLowTwice = "ScoreLowTwice";
   private static final String ScoreLowAndBalance = "ScoreLowAndBalance";
+  private static final String DriveForward = "DriveForward";
+
 
   private String m_autoSelected;
-
+// allows for us to display and choose auto options through Smart Dashboard
+/* SendableChooser is the object that allows us to do this; changing the variable type in <> will change
+the variable type able to be displayed on the Smart Dashboard
+*/
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   // variables that we get from the gyro (google if needed)
   public double YAW;
@@ -154,12 +160,13 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
 
-    
+   // declaring auto selection options on Smart Dashboard
     m_chooser.setDefaultOption("Default Auto", Auto2);
     m_chooser.addOption("Score Low", ScoreLow);
     m_chooser.addOption("Score Low and Drive Back", ScoreLowDriveBack);
     m_chooser.addOption("Score Low, Grab Cube and Score again", ScoreLowTwice);
     m_chooser.addOption("Score Low and Balance", ScoreLowAndBalance);
+    m_chooser.addOption("Drive Forward", DriveForward);
     SmartDashboard.putData("Auto choices", m_chooser);
 
     //declare encoders
@@ -484,6 +491,12 @@ public class Robot extends TimedRobot {
           }
         }
       break;
+      case DriveForward:
+        speed = 0.25;
+        FrontLeftMotor.set(-speed);
+        FrontRightMotor.set(speed);
+      break;
+        
       case ScoreLowAndBalance:
         if (autoStep == 1) 
         {
