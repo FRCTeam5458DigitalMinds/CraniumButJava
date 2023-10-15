@@ -136,14 +136,20 @@ public class Robot extends TimedRobot {
   public double mediumscoreextend;
   public double goalextend;
 
+  // declaring auto names 
   private static final String Auto2 = "Default";
   private static final String ScoreLow = "ScoreLow";
   private static final String ScoreLowDriveBack = "ScoreLowDriveBack";
   private static final String ScoreLowTwice = "ScoreLowTwice";
   private static final String ScoreLowAndBalance = "ScoreLowAndBalance";
+  private static final String DriveForward = "DriveForward";
+
 
   private String m_autoSelected;
-
+// allows for us to display and choose auto options through Smart Dashboard
+/* SendableChooser is the object that allows us to do this; changing the variable type in <> will change
+the variable type able to be displayed on the Smart Dashboard
+*/
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   // variables that we get from the gyro (google if needed)
   public double YAW;
@@ -154,12 +160,13 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
 
-    
+   // declaring auto selection options on Smart Dashboard
     m_chooser.setDefaultOption("Default Auto", Auto2);
     m_chooser.addOption("Score Low", ScoreLow);
     m_chooser.addOption("Score Low and Drive Back", ScoreLowDriveBack);
     m_chooser.addOption("Score Low, Grab Cube and Score again", ScoreLowTwice);
     m_chooser.addOption("Score Low and Balance", ScoreLowAndBalance);
+    m_chooser.addOption("Drive Forward", DriveForward);
     SmartDashboard.putData("Auto choices", m_chooser);
 
     //declare encoders
@@ -355,8 +362,11 @@ public class Robot extends TimedRobot {
             auto_Timer.start();
             timer_started = true;
           }
-           if (auto_Timer.get() > 1.5) 
-           {
+
+          //if over 1.5 seconds have elapsed
+          if (auto_Timer.get() > 1) 
+          {
+            //stop intake motors, timer, reset timer started. reset gyro values next step
             Intake.set(0);
             auto_Timer.stop();
             autoStep = 2;
@@ -369,9 +379,9 @@ public class Robot extends TimedRobot {
         if (autoStep == 2)
         {
           //if have not turned 173 then go
-          if (YAW <= 167)
+          if (YAW <= 150)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
@@ -388,7 +398,7 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 3)
         {
-          if (AverageEncoderValue <= 50)
+          if (AverageEncoderValue <= 53)
           {
             speed = 0.25;
             Intake.set(0.4);
@@ -407,7 +417,7 @@ public class Robot extends TimedRobot {
               auto_Timer.start();
               timer_started = true;
             }
-            if (auto_Timer.get() > 3) 
+            if (auto_Timer.get() > 0.5) 
             {
               IntakePiston.set(false);
               Intake.set(0);
@@ -424,9 +434,9 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 4)
         {
-          if (YAW <= 353)
+          if (YAW <= 332)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
@@ -440,7 +450,7 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 5)
         {
-          if (AverageEncoderValue <= 109)
+          if (AverageEncoderValue <= 115)
           {
             speed = 0.25;
             FrontRightMotor.set(speed * 0.9368259);
@@ -475,6 +485,12 @@ public class Robot extends TimedRobot {
           }
         }
       break;
+      case DriveForward:
+        speed = 0.25;
+        FrontLeftMotor.set(-speed);
+        FrontRightMotor.set(speed);
+      break;
+        
       case ScoreLowAndBalance:
         if (autoStep == 1) 
         {
@@ -505,9 +521,9 @@ public class Robot extends TimedRobot {
         }
         if (autoStep == 2)
         {
-          if (YAW <= 167)
+          if (YAW <= 150)
           {
-            speed = 0.15;
+            speed = 0.25;
             FrontLeftMotor.set(speed);
             FrontRightMotor.set(speed);
           }
