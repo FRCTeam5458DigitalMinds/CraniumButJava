@@ -349,28 +349,20 @@ public class Robot extends TimedRobot {
       case ScoreLowTwice:
         if (autoStep == 1) 
         {
-          //if timer has not started then reset timer and start it
           if (!timer_started) 
           {
-            gyro.setYaw(0);
             auto_Timer.reset();
             auto_Timer.start();
             timer_started = true;
           }
-
-          //if over 1.5 seconds have elapsed
-          if (auto_Timer.get() > 1.5) 
-          {
-            //stop intake motors, timer, reset timer started. reset gyro values next step
+           if (auto_Timer.get() > 1.5) 
+           {
             Intake.set(0);
             auto_Timer.stop();
-            timer_started = false;
-            gyro.reset();
             autoStep = 2;
-          } 
+           } 
           else 
           {
-            //if less than 1.5 elapsed then outake.
             Intake.set(-0.3);
           }
         }  
@@ -385,7 +377,6 @@ public class Robot extends TimedRobot {
           }
           else
           {
-            //if have turned 173 then stop. reset and ++ autostep
             FrontLeftMotor.set(0);
             FrontRightMotor.set(0);
 
@@ -534,36 +525,43 @@ public class Robot extends TimedRobot {
         } 
         if (autoStep == 3)
         {
-          if (AverageEncoderValue < 26.5)
+          ROLL = gyro.getRoll() - 2;
+          //if robot parallel to ground then go forward
+          if (ROLL >= -10 && ROLL <= 10)
           {
-            speed = 0.25;
-
-            FrontLeftMotor.set(-speed);
-            FrontRightMotor.set(speed);
+            FrontLeftMotor.set(-0.3);
+            FrontRightMotor.set(0.3* 0.80);
           }
+          //if going up then autostep increases
           else
           {
+            FrontLeftMotor.set(-0.15);
+            FrontRightMotor.set(0.15* 0.80);
             autoStep = 4;
           }
         }
         if (autoStep == 4)
         {
-          ROLL = gyro.getRoll() - 2;
+          //if the robot is going up the charging station, then go forward at half the speed that you ran up it.
+          if (ROLL < -7)
+          {
+            speed = 0.12;
 
-          if (ROLL >= -1 && ROLL <= 1)
+            FrontLeftMotor.set(-speed);
+            FrontRightMotor.set(speed* 0.80);
+          }   
+          //if the robot has overshot, and is now going down the charging station, then back up.
+          else if (ROLL > 7)
+          {
+            speed = -0.11;
+
+            FrontLeftMotor.set(-speed);
+            FrontRightMotor.set(speed* 0.80);
+          }
+          else
           {
             FrontLeftMotor.set(0);
             FrontRightMotor.set(0);
-          }
-          if (ROLL >= 1)
-          {
-            FrontLeftMotor.set(0.3);
-            FrontRightMotor.set(-0.3);
-          }
-          else if (ROLL <= -1)
-          {
-            FrontLeftMotor.set(-0.3);
-            FrontRightMotor.set(0.3);
           }
         }
       case Auto2:
@@ -612,8 +610,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("DB/String 1", "RD " + String.valueOf(RightEncoderValue));
     SmartDashboard.putString("DB/String 3", "EL " + String.valueOf(maxextensionlimit));
     SmartDashboard.putString("DB/String 4", "EV " + String.valueOf(extensionvalue));
-    SmartDashboard.putString("DB/String 8", "ROLL " + ((String.valueOf(ROLL))));
-    SmartDashboard.putString("DB/String 9", "YAW " + ((String.valueOf(YAW))));
+    SmartDashboard.putString("DB/String 8", "PITCH " + ((String.valueOf(PITCH))));
+    SmartDashboard.putString("DB/String 9", "ROLL " + ((String.valueOf(ROLL))));
     
     //dashboard testing(come back to it)
     // SmartDashboard.putString("DB/String 5", "AOV " + String.valueOf(ArmOneEncoderValue));
@@ -637,7 +635,7 @@ public class Robot extends TimedRobot {
 
     //declaing variable responsible for right/left on a vertical axis
     YAW = gyro.getYaw();
-
+    PITCH = gyro.getPitch();
     //getting position of drivetrain encoder (for testing and troubleshooting)
     LeftEncoderValue = -LeftEncoder.getPosition();
     RightEncoderValue = RightEncoder.getPosition();
