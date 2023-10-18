@@ -303,19 +303,23 @@ the variable type able to be displayed on the Smart Dashboard
     switch (m_autoSelected) 
     {
       case ScoreLow:
-        if (!timer_started)
+        if (autoStep == 1) 
         {
-          auto_Timer.start();
-          timer_started = true;
-        }
-    
-        if (auto_Timer.get() < 3) 
-        {
-          Intake.set(-0.3);
-        } 
-        else 
-        {
-          Intake.set(0);
+          if (!timer_started)
+          {
+            auto_Timer.start();
+            timer_started = true;
+          }
+      
+          if (auto_Timer.get() < 3) 
+          {
+            Intake.set(-0.3);
+          } 
+          else 
+          {
+            Intake.set(0);
+            autoStep = 2;
+          }
         }
       break;
       case ScoreLowDriveBack:
@@ -356,8 +360,10 @@ the variable type able to be displayed on the Smart Dashboard
       case ScoreLowTwice:
         if (autoStep == 1) 
         {
+          //if timer has not started then reset timer and start it
           if (!timer_started) 
           {
+            gyro.setYaw(0);
             auto_Timer.reset();
             auto_Timer.start();
             timer_started = true;
@@ -369,10 +375,13 @@ the variable type able to be displayed on the Smart Dashboard
             //stop intake motors, timer, reset timer started. reset gyro values next step
             Intake.set(0);
             auto_Timer.stop();
+            timer_started = false;
+            gyro.reset();
             autoStep = 2;
-           } 
+          } 
           else 
           {
+            //if less than 1.5 elapsed then outake.
             Intake.set(-0.3);
           }
         }  
@@ -387,6 +396,7 @@ the variable type able to be displayed on the Smart Dashboard
           }
           else
           {
+            //if have turned 173 then stop. reset and ++ autostep
             FrontLeftMotor.set(0);
             FrontRightMotor.set(0);
 
@@ -494,31 +504,23 @@ the variable type able to be displayed on the Smart Dashboard
       case ScoreLowAndBalance:
         if (autoStep == 1) 
         {
-          //if timer has not started then reset timer and start it
-          if (!timer_started) 
+          if (!timer_started)
           {
-            gyro.setYaw(0);
-            auto_Timer.reset();
             auto_Timer.start();
             timer_started = true;
           }
-
-          //if over 1.5 seconds have elapsed
-          if (auto_Timer.get() > 1.5) 
+      
+          if (auto_Timer.get() < 3) 
           {
-            //stop intake motors, timer, reset timer started. reset gyro values next step
-            Intake.set(0);
-            auto_Timer.stop();
-            timer_started = false;
-            gyro.reset();
-            autoStep = 2;
+            Intake.set(-0.3);
           } 
           else 
           {
-            //if less than 1.5 elapsed then outake.
-            Intake.set(-0.3);
+            Intake.set(0);
+            autoStep = 2;
           }
         }
+        
         if (autoStep == 2)
         {
           if (YAW <= 150)
@@ -543,7 +545,7 @@ the variable type able to be displayed on the Smart Dashboard
         {
           ROLL = gyro.getRoll() - 2;
           //if robot parallel to ground then go forward
-          if (ROLL >= -10 && ROLL <= 10)
+          if (ROLL >= -13 && ROLL <= 13)
           {
             FrontLeftMotor.set(-0.3);
             FrontRightMotor.set(0.3* 0.80);
@@ -558,21 +560,36 @@ the variable type able to be displayed on the Smart Dashboard
         }
         if (autoStep == 4)
         {
+          ROLL = gyro.getRoll() - 2;
           //if the robot is going up the charging station, then go forward at half the speed that you ran up it.
           if (ROLL < -7)
           {
             speed = 0.12;
 
             FrontLeftMotor.set(-speed);
-            FrontRightMotor.set(speed* 0.80);
+            FrontRightMotor.set(speed* 0.70);
           }   
           //if the robot has overshot, and is now going down the charging station, then back up.
           else if (ROLL > 7)
           {
-            speed = -0.11;
+            speed = -0.1;
 
             FrontLeftMotor.set(-speed);
-            FrontRightMotor.set(speed* 0.80);
+            FrontRightMotor.set(speed* 0.70);
+          }
+          else if (ROLL >- 7 && ROLL < -3)
+          {
+            speed = 0.05;
+
+            FrontLeftMotor.set(-speed);
+            FrontRightMotor.set(speed* 0.70);
+          }
+          else if (ROLL < 7 && ROLL > 3)
+          {
+            speed = -0.05;
+
+            FrontLeftMotor.set(-speed);
+            FrontRightMotor.set(speed* 0.70);
           }
           else
           {
@@ -580,11 +597,13 @@ the variable type able to be displayed on the Smart Dashboard
             FrontRightMotor.set(0);
           }
         }
+      break;
       case Auto2:
       default:
         Intake.set(0);
       break; 
     }
+
   }
 
   //default package
@@ -626,8 +645,8 @@ the variable type able to be displayed on the Smart Dashboard
     SmartDashboard.putString("DB/String 1", "RD " + String.valueOf(RightEncoderValue));
     SmartDashboard.putString("DB/String 3", "EL " + String.valueOf(maxextensionlimit));
     SmartDashboard.putString("DB/String 4", "EV " + String.valueOf(extensionvalue));
-    SmartDashboard.putString("DB/String 8", "PITCH " + ((String.valueOf(PITCH))));
-    SmartDashboard.putString("DB/String 9", "ROLL " + ((String.valueOf(ROLL))));
+    SmartDashboard.putString("DB/String 8", "ROLL " + ((String.valueOf(ROLL))));
+    SmartDashboard.putString("DB/String 9", "YAW " + ((String.valueOf(YAW))));
     
     //dashboard testing(come back to it)
     // SmartDashboard.putString("DB/String 5", "AOV " + String.valueOf(ArmOneEncoderValue));
@@ -651,7 +670,7 @@ the variable type able to be displayed on the Smart Dashboard
 
     //declaing variable responsible for right/left on a vertical axis
     YAW = gyro.getYaw();
-    PITCH = gyro.getPitch();
+
     //getting position of drivetrain encoder (for testing and troubleshooting)
     LeftEncoderValue = -LeftEncoder.getPosition();
     RightEncoderValue = RightEncoder.getPosition();
