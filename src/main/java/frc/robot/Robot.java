@@ -166,7 +166,6 @@ the variable type able to be displayed on the Smart Dashboard
     m_chooser.addOption("Score Low and Drive Back", ScoreLowDriveBack);
     m_chooser.addOption("Score Low, Grab Cube and Score again", ScoreLowTwice);
     m_chooser.addOption("Score Low and Balance", ScoreLowAndBalance);
-    m_chooser.addOption("Drive Forward", DriveForward);
     SmartDashboard.putData("Auto choices", m_chooser);
 
     //declare encoders
@@ -388,7 +387,7 @@ the variable type able to be displayed on the Smart Dashboard
         if (autoStep == 2)
         {
           //if have not turned 173 then go
-          if (YAW <= 150)
+          if (YAW <= 143)
           {
             speed = 0.25;
             FrontLeftMotor.set(speed);
@@ -408,7 +407,7 @@ the variable type able to be displayed on the Smart Dashboard
         }
         if (autoStep == 3)
         {
-          if (AverageEncoderValue <= 53)
+          if (AverageEncoderValue <= 55)
           {
             speed = 0.25;
             Intake.set(0.4);
@@ -460,7 +459,7 @@ the variable type able to be displayed on the Smart Dashboard
         }
         if (autoStep == 5)
         {
-          if (AverageEncoderValue <= 115)
+          if (AverageEncoderValue <= 117)
           {
             speed = 0.25;
             FrontRightMotor.set(speed * 0.9368259);
